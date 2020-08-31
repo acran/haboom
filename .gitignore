@@ -1,0 +1,8 @@
+frontend/Main
+*.dyn_hi
+*.dyn_o
+*.hi
+*.js_hi
+*.js_o
+*.jsexe/
+*.o
