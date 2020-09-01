@@ -26,7 +26,7 @@ addStyleSheet uri = elAttr "link" styleSheetAttr $ return ()
 bodyElement :: MonadWidget t m => m ()
 bodyElement = divClass "container" $ do
   el "h1" $ text "Haboom"
-  boardDiv
+  boardDiv 10 10
   controlsDiv
 
 controlsDiv :: MonadWidget t m => m ()
@@ -46,43 +46,17 @@ numberInput label defValue = divClass "input-group mt-2" $ do
              <> "type" =: "number"
              <> "class" =: "form-control"
 
-boardDiv :: MonadWidget t m => m ()
-boardDiv = divClass "card m-2" $ do
+boardDiv :: (DomBuilder t m) => Integer -> Integer -> m ()
+boardDiv width height = divClass "card m-2" $ do
   divClass "row justify-content-center p-3" $ do
     divClass "board" $ do
-      divClass "board-row" $ do
-        divClass "cell clickable unknown flag" blank
-        divClass "cell known label-5" blank
-        divClass "cell clickable unknown" blank
-        divClass "cell clickable unknown" blank
-        divClass "cell clickable unknown" blank
-      divClass "board-row" $ do
-        divClass "cell clickable unknown" blank
-        divClass "cell clickable unknown" blank
-        divClass "cell clickable unknown" blank
-        divClass "cell clickable unknown" blank
-        divClass "cell clickable unknown" blank
-      divClass "board-row" $ do
-        divClass "cell clickable unknown" blank
-        divClass "cell clickable unknown" blank
-        divClass "cell clickable unknown" blank
-        divClass "cell clickable unknown" blank
-        divClass "cell clickable unknown" blank
-      divClass "board-row" $ do
-        divClass "cell clickable unknown" blank
-        divClass "cell clickable unknown" blank
-        divClass "cell clickable unknown" blank
-        divClass "cell clickable unknown" blank
-        divClass "cell clickable unknown" blank
-      divClass "board-row" $ do
-        divClass "cell clickable unknown" blank
-        divClass "cell clickable unknown" blank
-        divClass "cell clickable unknown" blank
-        divClass "cell clickable unknown" blank
-        divClass "cell clickable unknown" blank
-      divClass "board-row" $ do
-        divClass "cell clickable unknown" blank
-        divClass "cell clickable unknown" blank
-        divClass "cell clickable unknown" blank
-        divClass "cell clickable unknown" blank
-        divClass "cell clickable unknown" blank
+      sequence [generateBoardRow x width | x <- [1 .. height]]
+      return ()
+
+generateBoardRow :: DomBuilder t m => Integer -> Integer -> m ()
+generateBoardRow row width = divClass "board-row" $ do
+  sequence [generateBoardCell row y | y <- [1 .. width]]
+  return ()
+
+generateBoardCell :: DomBuilder t m => Integer -> Integer -> m ()
+generateBoardCell row column = divClass "cell clickable unknown" blank
