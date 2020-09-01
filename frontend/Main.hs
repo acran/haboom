@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 import Data.Map (fromList)
@@ -46,17 +47,25 @@ numberInput label defValue = divClass "input-group mt-2" $ do
              <> "type" =: "number"
              <> "class" =: "form-control"
 
-boardDiv :: (DomBuilder t m) => Integer -> Integer -> m ()
+boardDiv :: MonadWidget t m => Integer -> Integer -> m ()
 boardDiv width height = divClass "card m-2" $ do
   divClass "row justify-content-center p-3" $ do
     divClass "board" $ do
       sequence [generateBoardRow x width | x <- [1 .. height]]
       return ()
 
-generateBoardRow :: DomBuilder t m => Integer -> Integer -> m ()
+generateBoardRow :: MonadWidget t m => Integer -> Integer -> m ()
 generateBoardRow row width = divClass "board-row" $ do
   sequence [generateBoardCell row y | y <- [1 .. width]]
   return ()
 
-generateBoardCell :: DomBuilder t m => Integer -> Integer -> m ()
-generateBoardCell row column = divClass "cell clickable unknown" blank
+generateBoardCell :: MonadWidget t m => Integer -> Integer -> m ()
+generateBoardCell row column = do
+  rec (cellElement, _) <- elDynClass' "div" dynClass blank
+      clickEvent <- return $ domEvent Click cellElement
+      toggleEvent <- toggle False clickEvent
+      let dynClass = cellClass <$> toggleEvent
+  return ()
+  where
+    cellClass True = "cell known"
+    cellClass False = "cell clickable unknown"
