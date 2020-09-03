@@ -76,28 +76,28 @@ boardDiv gameConfig = divClass "card m-2" $ do
       rec
         let gameState = initializeCellStates (getBoardWidth gameConfig) (getBoardHeight gameConfig) (getNumMines gameConfig)
         dynGameState <- foldDyn (updateCell reveal) gameState clickEvent
-        events <- sequence [generateBoardRow x (getBoardWidth gameConfig) dynGameState | x <- [1 .. getBoardHeight gameConfig]]
+        events <- sequence [generateBoardRow x (getBoardWidth gameConfig) dynGameState | x <- [0 .. ((getBoardHeight gameConfig) - 1)]]
         let clickEvent = leftmost events
       return ()
       where
-        updateCell update (BoardCoordinate x y) (state :: GameState) = over (ix $ x-1) (over (ix $ y - 1) update) state
+        updateCell update (BoardCoordinate x y) (state :: GameState) = over (ix x) (over (ix y) update) state
         reveal (CellState inner _) = CellState inner Known
 
 initializeCellStates :: Integral a => a -> a -> a -> GameState
 initializeCellStates width height mines = [
-      [CellState (calcInternal x y) Unknown | y <- [1 .. width]]
-    | x <- [1 .. height]]
+      [CellState (calcInternal x y) Unknown | y <- [0 .. (width - 1)]]
+    | x <- [0 .. (height - 1)]]
   where
     calcInternal x y =
       let step = width * height `quot` mines
-          cellNumber = (x-1) * width + y
+          cellNumber = x * width + y
       in case cellNumber `mod` step of
         0 -> Mine
         _ -> Safe
 
 generateBoardRow :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> m (Event t BoardCoordinate)
 generateBoardRow row width gameState = divClass "board-row" $ do
-  events <- sequence [generateBoardCell row y gameState| y <- [1 .. width]]
+  events <- sequence [generateBoardCell row y gameState| y <- [0 .. (width - 1)]]
   return $ leftmost events
 
 generateBoardCell :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> m (Event t BoardCoordinate)
@@ -107,7 +107,7 @@ generateBoardCell row column dynGameState = do
     (cellElement, _) <- elDynClass' "div" dynClass blank
     return $ const (BoardCoordinate row column) <$> domEvent Click cellElement
   where
-    getCellState gameState = gameState !! (row - 1) !! (column - 1)
+    getCellState gameState = gameState !! row !! column
 
     getDynClass (CellState _ Unknown) = "cell clickable unknown"
     getDynClass (CellState Mine Known) = "cell known bomb"
