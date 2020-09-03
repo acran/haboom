@@ -84,7 +84,9 @@ boardDiv gameConfig = divClass "card m-2" $ do
         updateCell (Reveal (BoardCoordinate x y)) (state :: GameState) = over (ix y) (over (ix x) reveal) state
         updateCell (ToggleFlag (BoardCoordinate x y)) state = over (ix y) (over (ix x) toggle) state
 
-        reveal (CellState inner _) = CellState inner Known
+        reveal (CellState inner Unknown) = CellState inner Known
+        reveal (CellState inner Unsure) = CellState inner Known
+        reveal cellState = cellState
 
         toggle (CellState inner Unknown) = CellState inner Flagged
         toggle (CellState inner Flagged) = CellState inner Unsure
