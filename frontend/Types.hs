@@ -29,3 +29,5 @@ data CellState = CellState {
   deriving Show
 
 type GameState = [[CellState]]
+
+data Action = Reveal BoardCoordinate | ToggleFlag BoardCoordinate

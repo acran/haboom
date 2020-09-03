@@ -3,8 +3,9 @@
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-import Control.Lens (over, ix, view)
-import Data.Map (fromList)
+import Control.Lens ((%~), over, ix, view)
+import Data.Map (Map, fromList)
+import Data.Proxy
 import Data.Text (Text, pack)
 import Data.Text.Read (decimal)
 import Reflex.Dom hiding (Safe)
@@ -75,13 +76,20 @@ boardDiv gameConfig = divClass "card m-2" $ do
     divClass "board" $ do
       rec
         let gameState = initializeCellStates (getBoardWidth gameConfig) (getBoardHeight gameConfig) (getNumMines gameConfig)
-        dynGameState <- foldDyn (updateCell reveal) gameState clickEvent
+        dynGameState <- foldDyn updateCell (gameState :: GameState) actionEvent
         events <- sequence [generateBoardRow x (getBoardWidth gameConfig) dynGameState | x <- [0 .. ((getBoardHeight gameConfig) - 1)]]
-        let clickEvent = leftmost events
+        let actionEvent = leftmost events
       return ()
       where
-        updateCell update (BoardCoordinate x y) (state :: GameState) = over (ix x) (over (ix y) update) state
+        updateCell (Reveal (BoardCoordinate x y)) (state :: GameState) = over (ix y) (over (ix x) reveal) state
+        updateCell (ToggleFlag (BoardCoordinate x y)) state = over (ix y) (over (ix x) toggle) state
+
         reveal (CellState inner _) = CellState inner Known
+
+        toggle (CellState inner Unknown) = CellState inner Flagged
+        toggle (CellState inner Flagged) = CellState inner Unsure
+        toggle (CellState inner Unsure) = CellState inner Unknown
+        toggle cellState = cellState
 
 initializeCellStates :: Integral a => a -> a -> a -> GameState
 initializeCellStates width height mines = [
@@ -96,20 +104,46 @@ initializeCellStates width height mines = [
         (0, True)-> Mine
         _ -> Safe
 
-generateBoardRow :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> m (Event t BoardCoordinate)
+generateBoardRow :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> m (Event t Action)
 generateBoardRow row width gameState = divClass "board-row" $ do
   events <- sequence [generateBoardCell row y gameState| y <- [0 .. (width - 1)]]
   return $ leftmost events
 
-generateBoardCell :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> m (Event t BoardCoordinate)
+generateBoardCell :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> m (Event t Action)
 generateBoardCell row column dynGameState = do
     let dynCellState = getCellState <$> dynGameState
     let dynClass = getDynClass <$> dynCellState
-    (cellElement, _) <- elDynClass' "div" dynClass blank
-    return $ const (BoardCoordinate row column) <$> domEvent Click cellElement
+
+    let dynAttr = classToAttr <$> dynClass
+
+    (cellElement, _) <- cellElement Nothing "div" dynAttr $ blank
+
+    let revealAction = const (Reveal (BoardCoordinate column row)) <$> domEvent Click cellElement
+    let toggleAction = const (ToggleFlag (BoardCoordinate column row)) <$> domEvent Contextmenu cellElement
+
+    return $ leftmost [revealAction, toggleAction]
   where
+    classToAttr classString = fromList [("class", classString)]
+
     getCellState gameState = gameState !! row !! column
 
     getDynClass (CellState _ Unknown) = "cell clickable unknown"
+    getDynClass (CellState _ Flagged) = "cell clickable unknown flag"
+    getDynClass (CellState _ Unsure) = "cell clickable unknown unsure"
+
     getDynClass (CellState Mine Known) = "cell known bomb"
     getDynClass (CellState _ Known) = "cell known"
+
+
+-- modified version of elDynAttrNS' to add preventDefault
+cellElement :: forall t m a. (DomBuilder t m, PostBuild t m) => Maybe Text -> Text -> Dynamic t (Map Text Text) -> m a -> m (Element EventResult (DomBuilderSpace m) t, a)
+cellElement mns elementTag attrs child = do
+  modifyAttrs <- dynamicAttributesToModifyAttributes attrs
+  let cfg = (def :: ElementConfig EventResult t (DomBuilderSpace m))
+        & elementConfig_namespace .~ mns
+        & modifyAttributes .~ fmapCheap mapKeysToAttributeName modifyAttrs
+        & elementConfig_eventSpec %~ addEventSpecFlags (Proxy :: Proxy (DomBuilderSpace m)) Contextmenu (const preventDefault)
+  result <- element elementTag cfg child
+  postBuild <- getPostBuild
+  notReadyUntil postBuild
+  return result
