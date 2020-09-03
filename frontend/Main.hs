@@ -1,11 +1,13 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE TemplateHaskell #-}
 
+import Control.Lens (over, ix, view)
 import Data.Map (fromList)
 import Data.Text (Text, pack)
 import Data.Text.Read (decimal)
-import Reflex.Dom
+import Reflex.Dom hiding (Safe)
 
 import Types
 
@@ -71,21 +73,42 @@ boardDiv :: MonadWidget t m => GameConfig -> m ()
 boardDiv gameConfig = divClass "card m-2" $ do
   divClass "row justify-content-center p-3" $ do
     divClass "board" $ do
-      sequence [generateBoardRow x $ getBoardWidth gameConfig | x <- [1 .. getBoardHeight gameConfig]]
+      rec
+        let gameState = initializeCellStates (getBoardWidth gameConfig) (getBoardHeight gameConfig) (getNumMines gameConfig)
+        dynGameState <- foldDyn (updateCell reveal) gameState clickEvent
+        events <- sequence [generateBoardRow x (getBoardWidth gameConfig) dynGameState | x <- [1 .. getBoardHeight gameConfig]]
+        let clickEvent = leftmost events
       return ()
+      where
+        updateCell update (BoardCoordinate x y) (state :: GameState) = over (ix $ x-1) (over (ix $ y - 1) update) state
+        reveal (CellState inner _) = CellState inner Known
 
-generateBoardRow :: MonadWidget t m => Int -> Int -> m ()
-generateBoardRow row width = divClass "board-row" $ do
-  sequence [generateBoardCell row y | y <- [1 .. width]]
-  return ()
-
-generateBoardCell :: MonadWidget t m => Int -> Int -> m ()
-generateBoardCell row column = do
-  rec (cellElement, _) <- elDynClass' "div" dynClass blank
-      clickEvent <- return $ domEvent Click cellElement
-      toggleEvent <- toggle False clickEvent
-      let dynClass = cellClass <$> toggleEvent
-  return ()
+initializeCellStates :: Integral a => a -> a -> a -> GameState
+initializeCellStates width height mines = [
+      [CellState (calcInternal x y) Unknown | y <- [1 .. width]]
+    | x <- [1 .. height]]
   where
-    cellClass True = "cell known"
-    cellClass False = "cell clickable unknown"
+    calcInternal x y =
+      let step = width * height `quot` mines
+          cellNumber = (x-1) * width + y
+      in case cellNumber `mod` step of
+        0 -> Mine
+        _ -> Safe
+
+generateBoardRow :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> m (Event t BoardCoordinate)
+generateBoardRow row width gameState = divClass "board-row" $ do
+  events <- sequence [generateBoardCell row y gameState| y <- [1 .. width]]
+  return $ leftmost events
+
+generateBoardCell :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> m (Event t BoardCoordinate)
+generateBoardCell row column dynGameState = do
+    let dynCellState = getCellState <$> dynGameState
+    let dynClass = getDynClass <$> dynCellState
+    (cellElement, _) <- elDynClass' "div" dynClass blank
+    return $ const (BoardCoordinate row column) <$> domEvent Click cellElement
+  where
+    getCellState gameState = gameState !! (row - 1) !! (column - 1)
+
+    getDynClass (CellState _ Unknown) = "cell clickable unknown"
+    getDynClass (CellState Mine Known) = "cell known bomb"
+    getDynClass (CellState _ Known) = "cell known"
