@@ -28,6 +28,9 @@ data CellState = CellState {
   }
   deriving Show
 
+instance Semigroup CellState
+instance Monoid CellState
+
 type GameState = [[CellState]]
 
 data Action = Reveal BoardCoordinate | ToggleFlag BoardCoordinate

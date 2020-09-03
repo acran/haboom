@@ -81,17 +81,42 @@ boardDiv gameConfig = divClass "card m-2" $ do
         let actionEvent = leftmost events
       return ()
       where
-        updateCell (Reveal (BoardCoordinate x y)) (state :: GameState) = over (ix y) (over (ix x) reveal) state
+        updateCell (Reveal (BoardCoordinate x y)) (state :: GameState) = over (ix y) (over (ix x) (reveal $ getNeighbors (getBoardWidth gameConfig) (getBoardHeight gameConfig) x y state)) state
         updateCell (ToggleFlag (BoardCoordinate x y)) state = over (ix y) (over (ix x) toggle) state
 
-        reveal (CellState inner Unknown) = CellState inner Known
-        reveal (CellState inner Unsure) = CellState inner Known
-        reveal cellState = cellState
+        reveal neighbors cellState = case cellState of
+            CellState _ Unknown -> updatedCell cellState
+            CellState _ Unsure -> updatedCell cellState
+            _ -> cellState
+          where
+            updatedCell (CellState Mine _) = CellState Mine Known
+            updatedCell (CellState Safe _) = CellState Safe newLabel
+            newLabel =
+              let numMines = foldr ((+) . isMine) 0 neighbors
+              in case numMines of
+                0 -> Known
+                num -> Labeled num
+            isMine (CellState Mine _) = 1
+            isMine (CellState Safe _) = 0
 
         toggle (CellState inner Unknown) = CellState inner Flagged
         toggle (CellState inner Flagged) = CellState inner Unsure
         toggle (CellState inner Unsure) = CellState inner Unknown
         toggle cellState = cellState
+
+getNeighbors :: Int -> Int -> Int -> Int -> GameState -> [CellState]
+getNeighbors width height x y state = [
+      view (ix nx) $ view (ix ny) state
+  | nx <- [x-1 .. x+1],
+    ny <- [y-1 .. y+1],
+
+    (nx, ny) /= (x, y),
+    nx >= 0,
+    nx < width,
+
+    ny >= 0,
+    ny < height
+  ]
 
 initializeCellStates :: Integral a => a -> a -> a -> GameState
 initializeCellStates width height mines = [
@@ -133,6 +158,7 @@ generateBoardCell row column dynGameState = do
     getDynClass (CellState _ Flagged) = "cell clickable unknown flag"
     getDynClass (CellState _ Unsure) = "cell clickable unknown unsure"
 
+    getDynClass (CellState _ (Labeled num)) = pack $ "cell known label-" ++ show num
     getDynClass (CellState Mine Known) = "cell known bomb"
     getDynClass (CellState _ Known) = "cell known"
 
