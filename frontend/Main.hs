@@ -53,7 +53,7 @@ controlsDiv = divClass "controls row justify-content-center" $ do
 
     holdDyn defaultConfig configStream
 
-numberInput :: MonadWidget t m => Text -> Integer -> m (Dynamic t Integer)
+numberInput :: MonadWidget t m => Text -> Int -> m (Dynamic t Int)
 numberInput label defValue = divClass "input-group mt-2" $ do
   divClass "input-group-prepend" $ divClass "input-group-text" $ text label
   inputElement <- textInput $
@@ -74,12 +74,12 @@ boardDiv gameConfig = divClass "card m-2" $ do
       sequence [generateBoardRow x $ getBoardWidth gameConfig | x <- [1 .. getBoardHeight gameConfig]]
       return ()
 
-generateBoardRow :: MonadWidget t m => Integer -> Integer -> m ()
+generateBoardRow :: MonadWidget t m => Int -> Int -> m ()
 generateBoardRow row width = divClass "board-row" $ do
   sequence [generateBoardCell row y | y <- [1 .. width]]
   return ()
 
-generateBoardCell :: MonadWidget t m => Integer -> Integer -> m ()
+generateBoardCell :: MonadWidget t m => Int -> Int -> m ()
 generateBoardCell row column = do
   rec (cellElement, _) <- elDynClass' "div" dynClass blank
       clickEvent <- return $ domEvent Click cellElement

@@ -6,7 +6,7 @@ data GameConfig =
   --
   -- GameConfig @width@ @height@ @numMines@
   GameConfig {
-    getBoardWidth :: Integer,
-    getBoardHeight :: Integer,
-    getNumMines :: Integer
+    getBoardWidth :: Int,
+    getBoardHeight :: Int,
+    getNumMines :: Int
   }
