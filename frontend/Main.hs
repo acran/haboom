@@ -91,8 +91,9 @@ initializeCellStates width height mines = [
     calcInternal x y =
       let step = width * height `quot` mines
           cellNumber = x * width + y
-      in case cellNumber `mod` step of
-        0 -> Mine
+          (cellDiv, cellMod) = cellNumber `divMod` step
+      in case (cellMod, cellDiv < mines) of
+        (0, True)-> Mine
         _ -> Safe
 
 generateBoardRow :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> m (Event t BoardCoordinate)
