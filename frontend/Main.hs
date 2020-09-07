@@ -13,7 +13,21 @@ import Reflex.Dom hiding (Safe)
 import Types
 
 main :: IO ()
-main = mainWidgetWithHead headElement bodyElement
+main = mainWidgetWithHead headElement $ do
+  let defaultConfig = GameConfig 10 10 20
+  rec
+    evGameConfigEvent <- dyn $ flip fmap dynGameConfig $ \gameConfig -> do
+      rec
+        let initialState = initializeCellStates (getBoardWidth gameConfig) (getBoardHeight gameConfig) (getNumMines gameConfig)
+        dynGameState <- foldDyn (updateCell gameConfig) initialState actionEvent
+
+        (gameConfigEvent, actionEvent) <- bodyElement gameConfig dynGameState
+
+      return gameConfigEvent
+
+    gameConfigEvent <- switchHold never evGameConfigEvent
+    dynGameConfig <- holdDyn defaultConfig gameConfigEvent
+  return ()
 
 headElement :: MonadWidget t m => m ()
 headElement = do
@@ -30,21 +44,19 @@ addStyleSheet uri = elAttr "link" styleSheetAttr $ return ()
         ("href", uri)
       ]
 
-bodyElement :: MonadWidget t m => m ()
-bodyElement = divClass "container" $ do
-  rec
-    el "h1" $ text "Haboom"
+bodyElement :: MonadWidget t m => GameConfig -> Dynamic t GameState -> m (Event t GameConfig, Event t Action)
+bodyElement gameConfig dynGameState = divClass "container" $ do
+  el "h1" $ text "Haboom"
 
-    dyn $ boardDiv <$> dynGameConfig
-    dynGameConfig <- controlsDiv
-  return ()
+  actionEvent <- boardDiv gameConfig dynGameState
+  gameConfigEvent <- controlsDiv gameConfig
 
-controlsDiv :: MonadWidget t m => m (Dynamic t GameConfig)
-controlsDiv = divClass "controls row justify-content-center" $ do
+  return (gameConfigEvent, actionEvent)
+
+controlsDiv :: MonadWidget t m => GameConfig -> m (Event t GameConfig)
+controlsDiv defaultConfig = divClass "controls row justify-content-center" $ do
   divClass "col-md-6 mt-2" $ do
     (buttonElement, _) <- el' "div" $ elClass "button" "btn btn-primary w-100" $ text "New game"
-
-    let defaultConfig = GameConfig 10 10 20
 
     widthInput <- numberInput "width" $ getBoardWidth defaultConfig
     heightInput <- numberInput "height" $ getBoardHeight defaultConfig
@@ -52,9 +64,8 @@ controlsDiv = divClass "controls row justify-content-center" $ do
 
     let config = GameConfig <$> widthInput <*> heightInput <*> minesInput
     let clickEvent = domEvent Click buttonElement
-    let configStream = tagPromptlyDyn config clickEvent
 
-    holdDyn defaultConfig configStream
+    return $ tagPromptlyDyn config clickEvent
 
 numberInput :: MonadWidget t m => Text -> Int -> m (Dynamic t Int)
 numberInput label defValue = divClass "input-group mt-2" $ do
@@ -70,16 +81,13 @@ numberInput label defValue = divClass "input-group mt-2" $ do
         getValue (Right (value, _)) = value
         getValue _ = defValue
 
-boardDiv :: MonadWidget t m => GameConfig -> m ()
-boardDiv gameConfig = divClass "card m-2" $ do
+boardDiv :: MonadWidget t m => GameConfig -> Dynamic t GameState -> m (Event t Action)
+boardDiv gameConfig dynGameState = divClass "card m-2" $ do
   divClass "row justify-content-center p-3" $ do
     divClass "board" $ do
-      rec
-        let gameState = initializeCellStates (getBoardWidth gameConfig) (getBoardHeight gameConfig) (getNumMines gameConfig)
-        dynGameState <- foldDyn (updateCell gameConfig) (gameState :: GameState) actionEvent
-        events <- sequence [generateBoardRow x (getBoardWidth gameConfig) dynGameState | x <- [0 .. ((getBoardHeight gameConfig) - 1)]]
-        let actionEvent = leftmost events
-      return ()
+      events <- sequence [generateBoardRow x (getBoardWidth gameConfig) dynGameState | x <- [0 .. ((getBoardHeight gameConfig) - 1)]]
+      let actionEvent = leftmost events
+      return actionEvent
 
 updateCell :: GameConfig -> Action -> GameState -> GameState
 updateCell gameConfig (Reveal (BoardCoordinate x y)) (state :: GameState) = over (ix y) (over (ix x) (reveal $ getNeighbors (getBoardWidth gameConfig) (getBoardHeight gameConfig) x y state)) state
