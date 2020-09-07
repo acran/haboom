@@ -31,6 +31,14 @@ data CellState = CellState {
 instance Semigroup CellState
 instance Monoid CellState
 
+isMine :: CellState -> Bool
+isMine (CellState Mine _) = True
+isMine _ = False
+
+isSafe :: CellState -> Bool
+isSafe (CellState Safe _) = True
+isSafe _ = False
+
 type GameState = [[CellState]]
 
 data Action = Reveal BoardCoordinate | ToggleFlag BoardCoordinate

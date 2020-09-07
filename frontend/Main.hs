@@ -92,12 +92,10 @@ boardDiv gameConfig = divClass "card m-2" $ do
             updatedCell (CellState Mine _) = CellState Mine Known
             updatedCell (CellState Safe _) = CellState Safe newLabel
             newLabel =
-              let numMines = foldr ((+) . isMine) 0 neighbors
+              let numMines = foldl (flip ((+) . (fromEnum . isMine))) 0 neighbors
               in case numMines of
                 0 -> Known
                 num -> Labeled num
-            isMine (CellState Mine _) = 1
-            isMine (CellState Safe _) = 0
 
         toggle (CellState inner Unknown) = CellState inner Flagged
         toggle (CellState inner Flagged) = CellState inner Unsure
