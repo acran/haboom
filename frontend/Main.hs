@@ -76,31 +76,34 @@ boardDiv gameConfig = divClass "card m-2" $ do
     divClass "board" $ do
       rec
         let gameState = initializeCellStates (getBoardWidth gameConfig) (getBoardHeight gameConfig) (getNumMines gameConfig)
-        dynGameState <- foldDyn updateCell (gameState :: GameState) actionEvent
+        dynGameState <- foldDyn (updateCell gameConfig) (gameState :: GameState) actionEvent
         events <- sequence [generateBoardRow x (getBoardWidth gameConfig) dynGameState | x <- [0 .. ((getBoardHeight gameConfig) - 1)]]
         let actionEvent = leftmost events
       return ()
-      where
-        updateCell (Reveal (BoardCoordinate x y)) (state :: GameState) = over (ix y) (over (ix x) (reveal $ getNeighbors (getBoardWidth gameConfig) (getBoardHeight gameConfig) x y state)) state
-        updateCell (ToggleFlag (BoardCoordinate x y)) state = over (ix y) (over (ix x) toggle) state
 
-        reveal neighbors cellState = case cellState of
-            CellState _ Unknown -> updatedCell cellState
-            CellState _ Unsure -> updatedCell cellState
-            _ -> cellState
-          where
-            updatedCell (CellState Mine _) = CellState Mine Known
-            updatedCell (CellState Safe _) = CellState Safe newLabel
-            newLabel =
-              let numMines = foldl (flip ((+) . (fromEnum . isMine))) 0 neighbors
-              in case numMines of
-                0 -> Known
-                num -> Labeled num
+updateCell :: GameConfig -> Action -> GameState -> GameState
+updateCell gameConfig (Reveal (BoardCoordinate x y)) (state :: GameState) = over (ix y) (over (ix x) (reveal $ getNeighbors (getBoardWidth gameConfig) (getBoardHeight gameConfig) x y state)) state
+updateCell _ (ToggleFlag (BoardCoordinate x y)) state = over (ix y) (over (ix x) toggleFlagState) state
 
-        toggle (CellState inner Unknown) = CellState inner Flagged
-        toggle (CellState inner Flagged) = CellState inner Unsure
-        toggle (CellState inner Unsure) = CellState inner Unknown
-        toggle cellState = cellState
+reveal :: Foldable t => t CellState -> CellState -> CellState
+reveal neighbors cellState = case cellState of
+    CellState _ Unknown -> updatedCell cellState
+    CellState _ Unsure -> updatedCell cellState
+    _ -> cellState
+  where
+    updatedCell (CellState Mine _) = CellState Mine Known
+    updatedCell (CellState Safe _) = CellState Safe newLabel
+    newLabel =
+      let numMines = foldl (flip ((+) . (fromEnum . isMine))) 0 neighbors
+      in case numMines of
+        0 -> Known
+        num -> Labeled num
+
+toggleFlagState :: CellState -> CellState
+toggleFlagState (CellState inner Unknown) = CellState inner Flagged
+toggleFlagState (CellState inner Flagged) = CellState inner Unsure
+toggleFlagState (CellState inner Unsure) = CellState inner Unknown
+toggleFlagState cellState = cellState
 
 getNeighbors :: Int -> Int -> Int -> Int -> GameState -> [CellState]
 getNeighbors width height x y state = [
@@ -145,6 +148,7 @@ generateBoardCell row column dynGameState = do
 
     let revealAction = const (Reveal (BoardCoordinate column row)) <$> domEvent Click cellElement
     let toggleAction = const (ToggleFlag (BoardCoordinate column row)) <$> domEvent Contextmenu cellElement
+
 
     return $ leftmost [revealAction, toggleAction]
   where
