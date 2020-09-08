@@ -5,8 +5,34 @@ import Control.Lens (view, ix, over)
 import Types
 
 updateCell :: GameConfig -> Action -> GameState -> GameState
-updateCell gameConfig (Reveal (BoardCoordinate x y)) state = over (ix y) (over (ix x) (reveal $ getNeighbors (getBoardWidth gameConfig) (getBoardHeight gameConfig) x y state)) state
 updateCell _ (ToggleFlag (BoardCoordinate x y)) state = over (ix y) (over (ix x) toggleFlagState) state
+updateCell gameConfig (Reveal coordinates@(BoardCoordinate x y)) gameState = case oldCellState of
+    (CellState _ Known) -> gameState
+    (CellState _ (Labeled _)) -> gameState
+    (CellState _ Flagged) -> gameState
+
+    _ -> case newCellState of
+      (CellState Safe Known) -> foldr (updateCell gameConfig . Reveal) newGameState neighborCoordinates
+      _ -> newGameState
+  where
+    oldCellState = getCellState gameState coordinates
+    newCellState = reveal neighbors oldCellState
+    newGameState = over (ix y) (over (ix x) $ const newCellState) gameState
+    neighbors = getCellState gameState <$> neighborCoordinates
+
+    getCellState gameState (BoardCoordinate column row) = gameState !! row !! column
+    neighborCoordinates = [
+        BoardCoordinate nx ny
+      | nx <- [x-1 .. x+1],
+        ny <- [y-1 .. y+1],
+
+        (nx, ny) /= (x, y),
+        nx >= 0,
+        nx < getBoardWidth gameConfig,
+
+        ny >= 0,
+        ny < getBoardHeight gameConfig
+      ]
 
 reveal :: Foldable t => t CellState -> CellState -> CellState
 reveal neighbors cellState = case cellState of
@@ -27,20 +53,6 @@ toggleFlagState (CellState inner Unknown) = CellState inner Flagged
 toggleFlagState (CellState inner Flagged) = CellState inner Unsure
 toggleFlagState (CellState inner Unsure) = CellState inner Unknown
 toggleFlagState cellState = cellState
-
-getNeighbors :: Int -> Int -> Int -> Int -> GameState -> [CellState]
-getNeighbors width height x y state = [
-      view (ix nx) $ view (ix ny) state
-  | nx <- [x-1 .. x+1],
-    ny <- [y-1 .. y+1],
-
-    (nx, ny) /= (x, y),
-    nx >= 0,
-    nx < width,
-
-    ny >= 0,
-    ny < height
-  ]
 
 initializeCellStates :: Integral a => a -> a -> a -> GameState
 initializeCellStates width height mines = [
