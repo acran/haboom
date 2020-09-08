@@ -6,7 +6,7 @@ import Types
 
 updateCell :: GameConfig -> Action -> GameState -> GameState
 updateCell _ (ToggleFlag (BoardCoordinate x y)) state = over (ix y) (over (ix x) toggleFlagState) state
-updateCell gameConfig (Reveal coordinates@(BoardCoordinate x y)) gameState = case oldCellState of
+updateCell gameConfig (Reveal coordinates@(BoardCoordinate x y)) gameState = case getCellState gameState coordinates of
     (CellState _ Known) -> gameState
     (CellState _ (Labeled _)) -> gameState
     (CellState _ Flagged) -> gameState
@@ -15,12 +15,32 @@ updateCell gameConfig (Reveal coordinates@(BoardCoordinate x y)) gameState = cas
       (CellState Safe Known) -> foldr (updateCell gameConfig . Reveal) newGameState neighborCoordinates
       _ -> newGameState
   where
-    oldCellState = getCellState gameState coordinates
-    newCellState = reveal neighbors oldCellState
-    newGameState = over (ix y) (over (ix x) $ const newCellState) gameState
-    neighbors = getCellState gameState <$> neighborCoordinates
-
     getCellState gameState (BoardCoordinate column row) = gameState !! row !! column
+    setCell prevState (BoardCoordinate column row) cellState = over (ix row) (over (ix column) $ const cellState) (prevState :: GameState)
+
+    fixedGameState = foldr fixCellState gameState (coordinates:neighborCoordinates)
+    neighbors = getCellState fixedGameState <$> neighborCoordinates
+
+    newCellState = reveal neighbors $ getCellState fixedGameState coordinates
+    newGameState = over (ix y) (over (ix x) $ const newCellState) fixedGameState
+
+    fixCellState (BoardCoordinate column row) gameState = case getCellState gameState (BoardCoordinate column row) of
+        CellState Undefined visibleState -> setCell gameState (BoardCoordinate column row) $ CellState internalState visibleState
+        _ -> gameState
+      where
+        internalState =
+            case (remainingMines, remainingCells - remainingMines) of
+              (0, _) -> Safe
+              (_, 1) -> Mine
+              (_, freeCells) -> case freeCells `mod` remainingMines of
+                  1 -> Mine
+                  _ -> Safe
+          where
+            numMines = getNumMines gameConfig
+            fixedMines = foldr ((+) . (fromEnum . isMine)) 0 $ concat gameState
+            remainingCells = foldr ((+) . (fromEnum . isUndefined)) 0 $ concat gameState
+            remainingMines = numMines - fixedMines
+
     neighborCoordinates = [
         BoardCoordinate nx ny
       | nx <- [x-1 .. x+1],
@@ -56,13 +76,5 @@ toggleFlagState cellState = cellState
 
 initializeCellStates :: Integral a => a -> a -> a -> GameState
 initializeCellStates width height mines = [
-      [CellState (calcInternal x y) Unknown | y <- [0 .. (width - 1)]]
+      [CellState Undefined Unknown | y <- [0 .. (width - 1)]]
     | x <- [0 .. (height - 1)]]
-  where
-    calcInternal x y =
-      let step = width * height `quot` mines
-          cellNumber = x * width + y
-          (cellDiv, cellMod) = cellNumber `divMod` step
-      in case (cellMod, cellDiv < mines) of
-        (0, True)-> Mine
-        _ -> Safe

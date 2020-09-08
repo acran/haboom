@@ -16,7 +16,7 @@ data BoardCoordinate = BoardCoordinate {
   getYCoordinate :: Int
 }
 
-data InternalCellState = Safe | Mine
+data InternalCellState = Safe | Mine | Undefined
   deriving Show
 
 data VisibleCellState = Unknown | Known | Labeled Int | Flagged | Unsure
@@ -38,6 +38,10 @@ isMine _ = False
 isSafe :: CellState -> Bool
 isSafe (CellState Safe _) = True
 isSafe _ = False
+
+isUndefined :: CellState -> Bool
+isUndefined (CellState Undefined _) = True
+isUndefined _ = False
 
 type GameState = [[CellState]]
 
