@@ -32,24 +32,29 @@ bodyElement :: MonadWidget t m => GameConfig -> Dynamic t GameState -> m (Event 
 bodyElement gameConfig dynGameState = divClass "container" $ do
   el "h1" $ text "Haboom"
 
-  actionEvent <- boardDiv gameConfig dynGameState
-  gameConfigEvent <- controlsDiv gameConfig
+  actionEvent <-  divClass "card m-2" $
+    divClass "row justify-content-center p-3" $
+      divClass "board" $
+        boardDiv gameConfig dynGameState
+
+  gameConfigEvent <- divClass "controls row justify-content-center" $
+    divClass "col-md-6 mt-2" $
+      controlsDiv gameConfig
 
   return (gameConfigEvent, actionEvent)
 
 controlsDiv :: MonadWidget t m => GameConfig -> m (Event t GameConfig)
-controlsDiv defaultConfig = divClass "controls row justify-content-center" $
-  divClass "col-md-6 mt-2" $ do
-    (buttonElement, _) <- el' "div" $ elClass "button" "btn btn-primary w-100" $ text "New game"
+controlsDiv defaultConfig = do
+  (buttonElement, _) <- el' "div" $ elClass "button" "btn btn-primary w-100" $ text "New game"
 
-    widthInput <- numberInput "width" $ getBoardWidth defaultConfig
-    heightInput <- numberInput "height" $ getBoardHeight defaultConfig
-    minesInput <- numberInput "mines" $ getNumMines defaultConfig
+  widthInput <- numberInput "width" $ getBoardWidth defaultConfig
+  heightInput <- numberInput "height" $ getBoardHeight defaultConfig
+  minesInput <- numberInput "mines" $ getNumMines defaultConfig
 
-    let config = GameConfig <$> widthInput <*> heightInput <*> minesInput
-    let clickEvent = domEvent Click buttonElement
+  let config = GameConfig <$> widthInput <*> heightInput <*> minesInput
+  let clickEvent = domEvent Click buttonElement
 
-    return $ tagPromptlyDyn config clickEvent
+  return $ tagPromptlyDyn config clickEvent
 
 numberInput :: MonadWidget t m => Text -> Int -> m (Dynamic t Int)
 numberInput label defValue = divClass "input-group mt-2" $ do
@@ -66,12 +71,10 @@ numberInput label defValue = divClass "input-group mt-2" $ do
         getValue _ = defValue
 
 boardDiv :: MonadWidget t m => GameConfig -> Dynamic t GameState -> m (Event t Action)
-boardDiv gameConfig dynGameState = divClass "card m-2" $
-  divClass "row justify-content-center p-3" $
-    divClass "board" $ do
-      events <- sequence [generateBoardRow x (getBoardWidth gameConfig) dynGameState | x <- [0 .. (getBoardHeight gameConfig - 1)]]
-      let actionEvent = leftmost events
-      return actionEvent
+boardDiv gameConfig dynGameState = do
+  events <- sequence [generateBoardRow x (getBoardWidth gameConfig) dynGameState | x <- [0 .. (getBoardHeight gameConfig - 1)]]
+  let actionEvent = leftmost events
+  return actionEvent
 
 generateBoardRow :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> m (Event t Action)
 generateBoardRow row width gameState = divClass "board-row" $ do
