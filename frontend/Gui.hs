@@ -38,7 +38,7 @@ bodyElement gameConfig dynGameState = divClass "container" $ do
   return (gameConfigEvent, actionEvent)
 
 controlsDiv :: MonadWidget t m => GameConfig -> m (Event t GameConfig)
-controlsDiv defaultConfig = divClass "controls row justify-content-center" $ do
+controlsDiv defaultConfig = divClass "controls row justify-content-center" $
   divClass "col-md-6 mt-2" $ do
     (buttonElement, _) <- el' "div" $ elClass "button" "btn btn-primary w-100" $ text "New game"
 
@@ -58,7 +58,7 @@ numberInput label defValue = divClass "input-group mt-2" $ do
     def & textInputConfig_inputType .~ "number"
       & textInputConfig_initialValue .~ (pack . show $ defValue)
       & textInputConfig_attributes .~ constDyn ("class" =: "form-control")
-  return $ parseInt <$> (value inputElement)
+  return $ parseInt <$> value inputElement
   where
     parseInt = getValue . decimal
       where
@@ -66,10 +66,10 @@ numberInput label defValue = divClass "input-group mt-2" $ do
         getValue _ = defValue
 
 boardDiv :: MonadWidget t m => GameConfig -> Dynamic t GameState -> m (Event t Action)
-boardDiv gameConfig dynGameState = divClass "card m-2" $ do
-  divClass "row justify-content-center p-3" $ do
+boardDiv gameConfig dynGameState = divClass "card m-2" $
+  divClass "row justify-content-center p-3" $
     divClass "board" $ do
-      events <- sequence [generateBoardRow x (getBoardWidth gameConfig) dynGameState | x <- [0 .. ((getBoardHeight gameConfig) - 1)]]
+      events <- sequence [generateBoardRow x (getBoardWidth gameConfig) dynGameState | x <- [0 .. (getBoardHeight gameConfig - 1)]]
       let actionEvent = leftmost events
       return actionEvent
 
@@ -85,10 +85,10 @@ generateBoardCell row column dynGameState = do
 
     let dynAttr = classToAttr <$> dynClass
 
-    (cellElement, _) <- cellElement Nothing "div" dynAttr $ blank
+    (cellElement, _) <- cellElement Nothing "div" dynAttr blank
 
-    let revealAction = const (Reveal (BoardCoordinate column row)) <$> domEvent Click cellElement
-    let toggleAction = const (ToggleFlag (BoardCoordinate column row)) <$> domEvent Contextmenu cellElement
+    let revealAction = Reveal (BoardCoordinate column row) <$ domEvent Click cellElement
+    let toggleAction = ToggleFlag (BoardCoordinate column row) <$ domEvent Contextmenu cellElement
 
     return $ leftmost [revealAction, toggleAction]
   where
