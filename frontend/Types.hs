@@ -43,6 +43,10 @@ isUndefined :: CellState -> Bool
 isUndefined (CellState Undefined _) = True
 isUndefined _ = False
 
+isFlagged :: CellState -> Bool
+isFlagged (CellState _ Flagged) = True
+isFlagged _ = False
+
 type GameState = [[CellState]]
 
 data Action = Reveal BoardCoordinate | ToggleFlag BoardCoordinate

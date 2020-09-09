@@ -34,10 +34,15 @@ bodyElement gameConfig dynGameState = divClass "container" $ do
   el "h1" $ text "Haboom"
 
   rec
-    actionEvent <- divClass "card m-2" $
-      divClass "row justify-content-center p-3" $
+    actionEvent <- divClass "card m-2" $ do
+      actionEvent <- divClass "row justify-content-center p-3" $
         divClass "board" $
           boardDiv gameConfig dynGameState dynDebugMode
+
+      divClass "row justify-content-center" $
+        dyn $ statusText gameConfig <$> dynGameState
+
+      return actionEvent
 
     (gameConfigEvent, dynDebugMode) <- divClass "controls row justify-content-center" $ do
       gameConfigEvent <- divClass "col-lg-3 col-md-6 mt-2" $
@@ -47,6 +52,11 @@ bodyElement gameConfig dynGameState = divClass "container" $ do
       return (gameConfigEvent, dynDebugMode)
 
   return (gameConfigEvent, actionEvent)
+
+statusText :: DomBuilder t m => GameConfig -> GameState -> m ()
+statusText gameConfig gameState = el "div" $
+    text $ pack $ "Mines: " ++ show flaggedCells ++ "/" ++ show (getNumMines gameConfig)
+  where flaggedCells = foldr ((+) . (fromEnum . isFlagged)) 0 $ concat gameState
 
 controlsDiv :: MonadWidget t m => GameConfig -> m (Event t GameConfig)
 controlsDiv defaultConfig = do
