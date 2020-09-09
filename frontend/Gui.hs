@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Gui where
@@ -9,7 +10,7 @@ import Data.Map (Map, fromList)
 import Data.Proxy ( Proxy(..) )
 import Data.Text (pack, Text)
 import Data.Text.Read (decimal)
-import Reflex.Dom
+import Reflex.Dom hiding (Safe)
 
 import Types
 
@@ -32,14 +33,18 @@ bodyElement :: MonadWidget t m => GameConfig -> Dynamic t GameState -> m (Event 
 bodyElement gameConfig dynGameState = divClass "container" $ do
   el "h1" $ text "Haboom"
 
-  actionEvent <-  divClass "card m-2" $
-    divClass "row justify-content-center p-3" $
-      divClass "board" $
-        boardDiv gameConfig dynGameState
+  rec
+    actionEvent <- divClass "card m-2" $
+      divClass "row justify-content-center p-3" $
+        divClass "board" $
+          boardDiv gameConfig dynGameState dynDebugMode
 
-  gameConfigEvent <- divClass "controls row justify-content-center" $
-    divClass "col-md-6 mt-2" $
-      controlsDiv gameConfig
+    (gameConfigEvent, dynDebugMode) <- divClass "controls row justify-content-center" $ do
+      gameConfigEvent <- divClass "col-lg-3 col-md-6 mt-2" $
+        controlsDiv gameConfig
+      dynDebugMode <- divClass "col-lg-3 col-md-6 mt-2"
+        tweaksDiv
+      return (gameConfigEvent, dynDebugMode)
 
   return (gameConfigEvent, actionEvent)
 
@@ -56,6 +61,13 @@ controlsDiv defaultConfig = do
 
   return $ tagPromptlyDyn config clickEvent
 
+tweaksDiv :: MonadWidget t m => m (Dynamic t Bool)
+tweaksDiv = el "div" $
+  el "label" $ do
+    debugMode <- checkbox False def
+    text "Debug mode"
+    return $ value debugMode
+
 numberInput :: MonadWidget t m => Text -> Int -> m (Dynamic t Int)
 numberInput label defValue = divClass "input-group mt-2" $ do
   divClass "input-group-prepend" $ divClass "input-group-text" $ text label
@@ -70,21 +82,21 @@ numberInput label defValue = divClass "input-group mt-2" $ do
         getValue (Right (value, _)) = value
         getValue _ = defValue
 
-boardDiv :: MonadWidget t m => GameConfig -> Dynamic t GameState -> m (Event t Action)
-boardDiv gameConfig dynGameState = do
-  events <- sequence [generateBoardRow x (getBoardWidth gameConfig) dynGameState | x <- [0 .. (getBoardHeight gameConfig - 1)]]
+boardDiv :: MonadWidget t m => GameConfig -> Dynamic t GameState -> Dynamic t Bool -> m (Event t Action)
+boardDiv gameConfig dynGameState dynDebugMode = do
+  events <- sequence [generateBoardRow x (getBoardWidth gameConfig) dynGameState dynDebugMode | x <- [0 .. (getBoardHeight gameConfig - 1)]]
   let actionEvent = leftmost events
   return actionEvent
 
-generateBoardRow :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> m (Event t Action)
-generateBoardRow row width gameState = divClass "board-row" $ do
-  events <- sequence [generateBoardCell row y gameState| y <- [0 .. (width - 1)]]
+generateBoardRow :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> Dynamic t Bool -> m (Event t Action)
+generateBoardRow row width gameState dynDebugMode = divClass "board-row" $ do
+  events <- sequence [generateBoardCell row y gameState dynDebugMode| y <- [0 .. (width - 1)]]
   return $ leftmost events
 
-generateBoardCell :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> m (Event t Action)
-generateBoardCell row column dynGameState = do
+generateBoardCell :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> Dynamic t Bool -> m (Event t Action)
+generateBoardCell row column dynGameState dynDebugMode = do
     let dynCellState = getCellState <$> dynGameState
-    let dynClass = getDynClass <$> dynCellState
+    let dynClass = getDynClass <$> dynDebugMode <*> dynCellState
 
     let dynAttr = classToAttr <$> dynClass
 
@@ -99,8 +111,8 @@ generateBoardCell row column dynGameState = do
 
     getCellState gameState = gameState !! row !! column
 
-    getDynClass (CellState internalState visibleState) =
-        pack $ "cell" ++ clickable ++ visibility ++ label ++ flag
+    getDynClass debugMode (CellState internalState visibleState) =
+        pack $ "cell" ++ clickable ++ visibility ++ label ++ flag ++ hint
       where
         clickable | not revealed, Unknown <- visibleState = " clickable"
                   | not revealed, Unsure <- visibleState = " clickable"
@@ -115,6 +127,10 @@ generateBoardCell row column dynGameState = do
 
         flag | Flagged <- visibleState = " flag"
              | Unsure <- visibleState = " unsure"
+             | otherwise = ""
+
+        hint | debugMode, not revealed, Mine <- internalState = " hint hint-mine"
+             | debugMode, not revealed, Safe <- internalState = " hint hint-safe"
              | otherwise = ""
 
         revealed | Known <- visibleState = True
