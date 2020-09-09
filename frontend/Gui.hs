@@ -99,13 +99,27 @@ generateBoardCell row column dynGameState = do
 
     getCellState gameState = gameState !! row !! column
 
-    getDynClass (CellState _ Unknown) = "cell clickable unknown"
-    getDynClass (CellState _ Flagged) = "cell clickable unknown flag"
-    getDynClass (CellState _ Unsure) = "cell clickable unknown unsure"
+    getDynClass (CellState internalState visibleState) =
+        pack $ "cell" ++ clickable ++ visibility ++ label ++ flag
+      where
+        clickable | not revealed, Unknown <- visibleState = " clickable"
+                  | not revealed, Unsure <- visibleState = " clickable"
+                  | otherwise = ""
 
-    getDynClass (CellState _ (Labeled num)) = pack $ "cell known label-" ++ show num
-    getDynClass (CellState Mine Known) = "cell known bomb"
-    getDynClass (CellState _ Known) = "cell known"
+        visibility | revealed = " known"
+                   | otherwise = " unknown"
+
+        label | revealed, Mine <- internalState = " bomb"
+              | Labeled x <- visibleState = " label-" ++ show x
+              | otherwise = ""
+
+        flag | Flagged <- visibleState = " flag"
+             | Unsure <- visibleState = " unsure"
+             | otherwise = ""
+
+        revealed | Known <- visibleState = True
+                 | Labeled _ <- visibleState = True
+                 | otherwise = False
 
 -- modified version of elDynAttrNS' to add preventDefault
 cellElement :: forall t m a. (DomBuilder t m, PostBuild t m) => Maybe Text -> Text -> Dynamic t (Map Text Text) -> m a -> m (Element EventResult (DomBuilderSpace m) t, a)
