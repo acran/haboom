@@ -49,4 +49,13 @@ isFlagged _ = False
 
 type GameState = [[CellState]]
 
+cellFromState :: BoardCoordinate -> GameState -> CellState
+cellFromState (BoardCoordinate column row) gameState = gameState !! row !! column
+
+countCells :: (CellState -> Bool) -> [CellState] -> Int
+countCells predicate = foldr ((+) . (fromEnum . predicate)) 0
+
+countInState :: (CellState -> Bool) -> GameState -> Int
+countInState predicate gameState = countCells predicate $ concat gameState
+
 data Action = Reveal BoardCoordinate | ToggleFlag BoardCoordinate

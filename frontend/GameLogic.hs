@@ -1,32 +1,38 @@
 module GameLogic where
 
 import Control.Lens (view, ix, over)
+import Control.Monad.State (execState, gets, put, get, State)
 
 import Types
 
-updateCell :: GameConfig -> Action -> GameState -> GameState
-updateCell _ (ToggleFlag (BoardCoordinate x y)) state = over (ix y) (over (ix x) toggleFlagState) state
-updateCell gameConfig (Reveal coordinates@(BoardCoordinate x y)) gameState = case getCellState gameState coordinates of
-    (CellState _ Known) -> gameState
-    (CellState _ (Labeled _)) -> gameState
-    (CellState _ Flagged) -> gameState
+type GameMonad = State (GameConfig, GameState)
 
-    _ -> case newCellState of
-      (CellState Safe Known) -> foldr (updateCell gameConfig . Reveal) newGameState neighborCoordinates
-      _ -> newGameState
+getCell :: BoardCoordinate -> GameMonad CellState
+getCell coordinates = do
+  gameState <- gets snd
+  let cell = cellFromState coordinates gameState
+  return cell
+
+setCell :: BoardCoordinate -> CellState -> GameMonad ()
+setCell coordinates cell = changeCell coordinates $ const cell
+
+changeCell :: BoardCoordinate -> (CellState -> CellState) -> GameMonad ()
+changeCell (BoardCoordinate column row) f = do
+  (config, oldState) <- get
+  let newState = over (ix row) (over (ix column) f) oldState
+  put (config, newState)
+
+getCellFixed :: BoardCoordinate -> GameMonad CellState
+getCellFixed coordinates = do
+    (gameConfig, gameState) <- get
+    let cell = cellFromState coordinates gameState
+
+    fixCell gameConfig gameState coordinates cell
   where
-    getCellState gameState (BoardCoordinate column row) = gameState !! row !! column
-    setCell prevState (BoardCoordinate column row) cellState = over (ix row) (over (ix column) $ const cellState) (prevState :: GameState)
-
-    fixedGameState = foldr fixCellState gameState (coordinates:neighborCoordinates)
-    neighbors = getCellState fixedGameState <$> neighborCoordinates
-
-    newCellState = reveal neighbors $ getCellState fixedGameState coordinates
-    newGameState = over (ix y) (over (ix x) $ const newCellState) fixedGameState
-
-    fixCellState (BoardCoordinate column row) gameState = case getCellState gameState (BoardCoordinate column row) of
-        CellState Undefined visibleState -> setCell gameState (BoardCoordinate column row) $ CellState internalState visibleState
-        _ -> gameState
+    fixCell gameConfig gameState coordinates (CellState Undefined visibleState)= do
+        let fixedCell = CellState internalState visibleState
+        setCell coordinates fixedCell
+        return fixedCell
       where
         internalState =
             case (remainingMines, remainingCells - remainingMines) of
@@ -41,32 +47,61 @@ updateCell gameConfig (Reveal coordinates@(BoardCoordinate x y)) gameState = cas
             remainingCells = foldr ((+) . (fromEnum . isUndefined)) 0 $ concat gameState
             remainingMines = numMines - fixedMines
 
-    neighborCoordinates = [
-        BoardCoordinate nx ny
-      | nx <- [x-1 .. x+1],
-        ny <- [y-1 .. y+1],
+    fixCell _ _ _ cell = return cell
 
-        (nx, ny) /= (x, y),
-        nx >= 0,
-        nx < getBoardWidth gameConfig,
-
-        ny >= 0,
-        ny < getBoardHeight gameConfig
-      ]
-
-reveal :: Foldable t => t CellState -> CellState -> CellState
-reveal neighbors cellState = case cellState of
-    CellState _ Unknown -> updatedCell cellState
-    CellState _ Unsure -> updatedCell cellState
-    _ -> cellState
+updateCell :: GameConfig -> Action -> GameState -> GameState
+updateCell gameConfig action state =
+    snd $ execState performAction (gameConfig, state)
   where
-    updatedCell (CellState Mine _) = CellState Mine Known
-    updatedCell (CellState Safe _) = CellState Safe newLabel
-    newLabel =
-      let numMines = foldl (flip ((+) . (fromEnum . isMine))) 0 neighbors
-      in case numMines of
-        0 -> Known
-        num -> Labeled num
+    performAction | (ToggleFlag coordinates) <- action = changeCell coordinates toggleFlagState
+                  | (Reveal coordinates) <- action = revealAction coordinates
+
+revealAction :: BoardCoordinate -> GameMonad ()
+revealAction coordinates = do
+  oldCell <- getCellFixed coordinates
+  revealCell oldCell coordinates
+  return ()
+
+revealCell :: CellState -> BoardCoordinate -> GameMonad ()
+revealCell (CellState _ Known) _ = return ()
+revealCell (CellState _ (Labeled _)) _ = return ()
+revealCell (CellState _ Flagged) _ = return ()
+revealCell oldCell coordinates = do
+    neighbors <- fmap getCellFixed <$> neighborCoordinates coordinates >>= sequence
+    let mines = countCells isMine neighbors
+
+    let newCell = revealedCell oldCell mines
+    setCell coordinates newCell
+
+    maybeRevealNeighbors newCell coordinates
+
+    return ()
+  where
+    revealedCell (CellState Mine _) _ = CellState Mine Known
+    revealedCell (CellState Safe _) 0 = CellState Safe Known
+    revealedCell (CellState Safe _) numMines = CellState Safe (Labeled numMines)
+
+    maybeRevealNeighbors (CellState Safe Known) coordinates = do
+      neighbors <- neighborCoordinates coordinates
+      mapM revealAction neighbors
+
+    maybeRevealNeighbors _ coordinates = return []
+
+neighborCoordinates :: BoardCoordinate -> GameMonad [BoardCoordinate]
+neighborCoordinates (BoardCoordinate x y) = do
+  gameConfig <- gets fst
+  return [
+      BoardCoordinate nx ny
+    | nx <- [x-1 .. x+1],
+      ny <- [y-1 .. y+1],
+
+      (nx, ny) /= (x, y),
+      nx >= 0,
+      nx < getBoardWidth gameConfig,
+
+      ny >= 0,
+      ny < getBoardHeight gameConfig
+    ]
 
 toggleFlagState :: CellState -> CellState
 toggleFlagState (CellState inner Unknown) = CellState inner Flagged
