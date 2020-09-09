@@ -22,8 +22,8 @@ changeCell (BoardCoordinate column row) f = do
   let newState = over (ix row) (over (ix column) f) oldState
   put (config, newState)
 
-getCellFixed :: BoardCoordinate -> GameMonad CellState
-getCellFixed coordinates = do
+getCellFixed :: Bool -> BoardCoordinate -> GameMonad CellState
+getCellFixed safe coordinates = do
     (gameConfig, gameState) <- get
     let cell = cellFromState coordinates gameState
 
@@ -35,10 +35,11 @@ getCellFixed coordinates = do
         return fixedCell
       where
         internalState =
-            case (remainingMines, remainingCells - remainingMines) of
-              (0, _) -> Safe
-              (_, 1) -> Mine
-              (_, freeCells) -> case freeCells `mod` remainingMines of
+            case (remainingMines, remainingCells - remainingMines, safe) of
+              (0, _, _) -> Safe
+              (_, 0, _) -> Mine
+              (_, _, True) -> Safe
+              (_, freeCells, _) -> case freeCells `mod` remainingMines of
                   1 -> Mine
                   _ -> Safe
           where
@@ -58,7 +59,7 @@ updateCell gameConfig action state =
 
 revealAction :: BoardCoordinate -> GameMonad ()
 revealAction coordinates = do
-  oldCell <- getCellFixed coordinates
+  oldCell <- getCellFixed True coordinates
   revealCell oldCell coordinates
   return ()
 
@@ -67,7 +68,7 @@ revealCell (CellState _ Known) _ = return ()
 revealCell (CellState _ (Labeled _)) _ = return ()
 revealCell (CellState _ Flagged) _ = return ()
 revealCell oldCell coordinates = do
-    neighbors <- fmap getCellFixed <$> neighborCoordinates coordinates >>= sequence
+    neighbors <- fmap (getCellFixed False) <$> neighborCoordinates coordinates >>= sequence
     let mines = countCells isMine neighbors
 
     let newCell = revealedCell oldCell mines
