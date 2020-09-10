@@ -19,7 +19,7 @@ data BoardCoordinate = BoardCoordinate {
 data InternalCellState = Safe | Mine | Undefined
   deriving Show
 
-data VisibleCellState = Unknown | Known | Labeled Int | Flagged | Unsure
+data VisibleCellState = Unknown | Known | Labeled Int Int | Flagged | Unsure
   deriving Show
 
 data CellState = CellState {
@@ -51,7 +51,7 @@ isFlagged _ = False
 
 isKnown :: CellState -> Bool
 isKnown (CellState _ Known) = True
-isKnown (CellState _ (Labeled _)) = True
+isKnown (CellState _ (Labeled _ _)) = True
 isKnown _ = False
 
 data GameState = GameState {

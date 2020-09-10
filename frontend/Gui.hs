@@ -37,23 +37,24 @@ bodyElement gameConfig dynGameState = divClass "container" $ do
     actionEvent <- divClass "card m-2" $ do
       actionEvent <- divClass "row justify-content-center p-3" $
         divClass "board" $
-          boardDiv gameConfig dynGameState dynDebugMode
+          boardDiv gameConfig dynGameState dynDebugMode dynCountdownMode
 
       divClass "row justify-content-center" $
         dyn $ statusText gameConfig <$> dynGameState
 
       return actionEvent
 
-    (gameConfigEvent, dynDebugMode, undoEvent) <- divClass "controls row justify-content-center" $ do
+    (gameConfigEvent, dynDebugMode, dynCountdownMode, undoEvent) <- divClass "controls row justify-content-center" $ do
       gameConfigEvent <- divClass "col-lg-3 col-md-6 mt-2" $
         controlsDiv gameConfig
       presetEvent <- divClass "col-lg-3 col-md-6 mt-2"
         presetsDiv
-      (dynDebugMode, undoEvent) <- divClass "col-lg-3 col-md-6 mt-2" $ do
-        dynDebugMode <- tweaksDiv
+      (dynDebugMode, dynCountdownMode, undoEvent) <- divClass "col-lg-3 col-md-6 mt-2" $ do
+        (dynDebugMode, dynCountdownMode) <- tweaksDiv
         undoEvent <- undoButton dynGameState
-        return (dynDebugMode, undoEvent)
-      return (leftmost [gameConfigEvent, presetEvent], dynDebugMode, undoEvent)
+        return (dynDebugMode, dynCountdownMode, undoEvent)
+
+      return (leftmost [gameConfigEvent, presetEvent], dynDebugMode, dynCountdownMode, undoEvent)
 
   return (gameConfigEvent, leftmost [actionEvent, undoEvent])
 
@@ -109,12 +110,19 @@ undoButton gameState = do
         ("disabled", "disabled")
       ]
 
-tweaksDiv :: MonadWidget t m => m (Dynamic t Bool)
-tweaksDiv = el "div" $
-  el "label" $ do
+tweaksDiv :: MonadWidget t m => m (Dynamic t Bool, Dynamic t Bool)
+tweaksDiv = el "div" $ do
+  debugMode <- el "label" $ do
     debugMode <- checkbox False def
     text "Debug mode"
     return $ value debugMode
+  countdownMode <- el "label" $ do
+    countdownMode <- checkbox False def
+    text "Countdown mode "
+    elAttr "abbr" ("title" =: "Instead of showing the total number of mines around a tile, show the remaining (based on placed flags)") $ text "(?)"
+    return $ value countdownMode
+
+  return (debugMode, countdownMode)
 
 numberInput :: MonadWidget t m => Text -> Int -> m (Dynamic t Int)
 numberInput label defValue = divClass "input-group mt-2" $ do
@@ -130,22 +138,22 @@ numberInput label defValue = divClass "input-group mt-2" $ do
         getValue (Right (value, _)) = value
         getValue _ = defValue
 
-boardDiv :: MonadWidget t m => GameConfig -> Dynamic t GameState -> Dynamic t Bool -> m (Event t Action)
-boardDiv gameConfig dynGameState dynDebugMode = do
-  events <- sequence [generateBoardRow x (getBoardWidth gameConfig) dynGameState dynDebugMode | x <- [0 .. (getBoardHeight gameConfig - 1)]]
+boardDiv :: MonadWidget t m => GameConfig -> Dynamic t GameState -> Dynamic t Bool -> Dynamic t Bool -> m (Event t Action)
+boardDiv gameConfig dynGameState dynDebugMode dynCountdownMode = do
+  events <- sequence [generateBoardRow x (getBoardWidth gameConfig) dynGameState dynDebugMode dynCountdownMode | x <- [0 .. (getBoardHeight gameConfig - 1)]]
   let actionEvent = leftmost events
   return actionEvent
 
-generateBoardRow :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> Dynamic t Bool -> m (Event t Action)
-generateBoardRow row width gameState dynDebugMode = divClass "board-row" $ do
-  events <- sequence [generateBoardCell row y gameState dynDebugMode| y <- [0 .. (width - 1)]]
+generateBoardRow :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> Dynamic t Bool -> Dynamic t Bool -> m (Event t Action)
+generateBoardRow row width gameState dynDebugMode dynCountdownMode = divClass "board-row" $ do
+  events <- sequence [generateBoardCell row y gameState dynDebugMode dynCountdownMode | y <- [0 .. (width - 1)]]
   return $ leftmost events
 
-generateBoardCell :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> Dynamic t Bool -> m (Event t Action)
-generateBoardCell row column dynGameState dynDebugMode = do
+generateBoardCell :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> Dynamic t Bool -> Dynamic t Bool -> m (Event t Action)
+generateBoardCell row column dynGameState dynDebugMode dynCountdownMode= do
     let dynCellState = getCellState . getCells <$> dynGameState
     let dynGameStatus = gameStatus . getCache <$> dynGameState
-    let dynClass = getDynClass <$> dynDebugMode <*> dynCellState <*> dynGameStatus
+    let dynClass = getDynClass <$> dynDebugMode <*> dynCountdownMode <*> dynCellState <*> dynGameStatus
 
     let dynAttr = classToAttr <$> dynClass
 
@@ -160,7 +168,7 @@ generateBoardCell row column dynGameState dynDebugMode = do
 
     getCellState gameState = gameState !! row !! column
 
-    getDynClass debugMode (CellState internalState visibleState) status =
+    getDynClass debugMode countdownMode (CellState internalState visibleState) status =
         pack $ "cell" ++ clickable ++ visibility ++ label ++ flag ++ hint
       where
         clickable | Playing <- status, not revealed, Unknown <- visibleState = " clickable"
@@ -173,7 +181,9 @@ generateBoardCell row column dynGameState dynDebugMode = do
         label | revealed, Mine <- internalState = " bomb"
               | Lost <- status, Mine <- internalState = " bomb"
               | Won <- status, Mine <- internalState = " bomb-win"
-              | Labeled x <- visibleState = " label-" ++ show x
+              | Labeled 0 _ <- visibleState = ""
+              | countdownMode, Labeled _ x <- visibleState = " label-" ++ show x
+              | Labeled x _ <- visibleState = " label-" ++ show x
               | otherwise = ""
 
         flag | status /= Playing, Mine <- internalState = ""
@@ -186,7 +196,7 @@ generateBoardCell row column dynGameState dynDebugMode = do
              | otherwise = ""
 
         revealed | Known <- visibleState = True
-                 | Labeled _ <- visibleState = True
+                 | Labeled _ _<- visibleState = True
                  | otherwise = False
 
 -- modified version of elDynAttrNS' to add preventDefault
