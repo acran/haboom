@@ -44,16 +44,18 @@ bodyElement gameConfig dynGameState = divClass "container" $ do
 
       return actionEvent
 
-    (gameConfigEvent, dynDebugMode) <- divClass "controls row justify-content-center" $ do
+    (gameConfigEvent, dynDebugMode, undoEvent) <- divClass "controls row justify-content-center" $ do
       gameConfigEvent <- divClass "col-lg-3 col-md-6 mt-2" $
         controlsDiv gameConfig
       presetEvent <- divClass "col-lg-3 col-md-6 mt-2"
         presetsDiv
-      dynDebugMode <- divClass "col-lg-3 col-md-6 mt-2"
-        tweaksDiv
-      return (leftmost [gameConfigEvent, presetEvent], dynDebugMode)
+      (dynDebugMode, undoEvent) <- divClass "col-lg-3 col-md-6 mt-2" $ do
+        dynDebugMode <- tweaksDiv
+        undoEvent <- undoButton dynGameState
+        return (dynDebugMode, undoEvent)
+      return (leftmost [gameConfigEvent, presetEvent], dynDebugMode, undoEvent)
 
-  return (gameConfigEvent, actionEvent)
+  return (gameConfigEvent, leftmost [actionEvent, undoEvent])
 
 statusText :: DomBuilder t m => GameConfig -> GameState -> m ()
 statusText gameConfig gameState = el "div" $
@@ -93,6 +95,19 @@ presetButton (label, config) = do
   (buttonElement, _) <- elClass' "button" "btn btn-light w-100 mb-2" $ text label
   let clickEvent = domEvent Click buttonElement
   return $ tagPromptlyDyn (constDyn config) clickEvent
+
+undoButton :: MonadWidget t m => Dynamic t GameState -> m (Event t Action)
+undoButton gameState = do
+    let dynAttr = attr <$> gameState
+    (buttonElement, _) <- elDynAttr' "button" dynAttr $ text "Undo"
+    return $ Undo <$ domEvent Click buttonElement
+  where
+    attr (GameState (Just _) _ (StateCache _ _ Playing)) = fromList [("class", "btn btn-light btn-sm mt-2")]
+    attr (GameState (Just _) _ (StateCache _ _ Lost)) = fromList [("class", "btn btn-light btn-sm mt-2")]
+    attr _ = fromList [
+        ("class", "btn btn-light btn-sm mt-2"),
+        ("disabled", "disabled")
+      ]
 
 tweaksDiv :: MonadWidget t m => m (Dynamic t Bool)
 tweaksDiv = el "div" $

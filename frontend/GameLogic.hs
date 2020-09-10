@@ -1,7 +1,8 @@
 module GameLogic where
 
 import Control.Lens (view, ix, over)
-import Control.Monad.State (execState, gets, put, get, State)
+import Control.Monad.State (modify, execState, gets, put, get, State)
+import Data.Maybe (fromMaybe)
 
 import Types
 
@@ -18,9 +19,9 @@ setCell coordinates cell = changeCell coordinates $ const cell
 
 changeCell :: BoardCoordinate -> (CellState -> CellState) -> GameMonad ()
 changeCell (BoardCoordinate column row) f = do
-    (config, GameState oldState _) <- get
+    (config, GameState prev oldState _) <- get
     let newState = over (ix row) (over (ix column) f) oldState
-    put (config, GameState newState (newCache config newState))
+    put (config, GameState prev newState (newCache config newState))
   where
     newCache config newState =
       let
@@ -36,7 +37,7 @@ changeCell (BoardCoordinate column row) f = do
 
 getCellFixed :: Bool -> BoardCoordinate -> GameMonad CellState
 getCellFixed safe coordinates = do
-    (gameConfig, GameState gameState cache) <- get
+    (gameConfig, GameState _ gameState cache) <- get
     let cell = cellFromState coordinates gameState
 
     fixCell gameConfig gameState cache coordinates cell
@@ -60,9 +61,17 @@ updateCell :: GameConfig -> Action -> GameState -> GameState
 updateCell gameConfig action state =
     snd $ execState performAction (gameConfig, state)
   where
-    performAction | (gameStatus . getCache) state /= Playing = return ()
+    performAction | Undo <- action, (gameStatus . getCache) state /= Won = do
+                    (config, current@(GameState undoState _ _)) <- get
+                    put (config, fromMaybe current undoState)
+
+                  | (gameStatus . getCache) state /= Playing = return ()
                   | (ToggleFlag coordinates) <- action = changeCell coordinates toggleFlagState
-                  | (Reveal coordinates) <- action = revealAction coordinates
+                  | (Reveal coordinates) <- action = do
+                      undoState <- gets snd
+                      revealAction coordinates
+                      modify $
+                        \(config, GameState _ cellStates cache) -> (config, GameState (Just undoState) cellStates cache)
 
 revealAction :: BoardCoordinate -> GameMonad ()
 revealAction coordinates = do
@@ -125,7 +134,7 @@ toggleFlagState (CellState inner Unsure) = CellState inner Unknown
 toggleFlagState cellState = cellState
 
 initializeCellStates :: Int -> Int -> Int -> GameState
-initializeCellStates width height mines = GameState [
+initializeCellStates width height mines = GameState Nothing [
       [newCell | y <- [0 .. (width - 1)]]
     | x <- [0 .. (height - 1)]] (StateCache mines (numCells - mines) Playing)
   where

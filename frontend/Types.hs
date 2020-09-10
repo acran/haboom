@@ -55,6 +55,7 @@ isKnown (CellState _ (Labeled _)) = True
 isKnown _ = False
 
 data GameState = GameState {
+  prevState :: Maybe GameState,
   getCells :: CellStates,
   getCache :: StateCache
 }
@@ -77,4 +78,4 @@ countCells predicate = foldr ((+) . (fromEnum . predicate)) 0
 countInState :: (CellState -> Bool) -> CellStates -> Int
 countInState predicate cellStates = countCells predicate $ concat cellStates
 
-data Action = Reveal BoardCoordinate | ToggleFlag BoardCoordinate
+data Action = Reveal BoardCoordinate | ToggleFlag BoardCoordinate | Undo
