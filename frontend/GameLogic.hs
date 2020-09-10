@@ -9,8 +9,8 @@ type GameMonad = State (GameConfig, GameState)
 
 getCell :: BoardCoordinate -> GameMonad CellState
 getCell coordinates = do
-  gameState <- gets snd
-  let cell = cellFromState coordinates gameState
+  cellStates <- gets $ getCells . snd
+  let cell = cellFromState coordinates cellStates
   return cell
 
 setCell :: BoardCoordinate -> CellState -> GameMonad ()
@@ -18,37 +18,39 @@ setCell coordinates cell = changeCell coordinates $ const cell
 
 changeCell :: BoardCoordinate -> (CellState -> CellState) -> GameMonad ()
 changeCell (BoardCoordinate column row) f = do
-  (config, oldState) <- get
-  let newState = over (ix row) (over (ix column) f) oldState
-  put (config, newState)
+    (config, GameState oldState _) <- get
+    let newState = over (ix row) (over (ix column) f) oldState
+    put (config, GameState newState (newCache config newState))
+  where
+    newCache config newState =
+      let
+        fixedMines = countInState isMine newState
+        remainingMines = getNumMines config - fixedMines
+        remainingCells = countInState isUndefined newState
+        freeCells = remainingCells - remainingMines
+      in StateCache remainingMines freeCells
 
 getCellFixed :: Bool -> BoardCoordinate -> GameMonad CellState
 getCellFixed safe coordinates = do
-    (gameConfig, gameState) <- get
+    (gameConfig, GameState gameState cache) <- get
     let cell = cellFromState coordinates gameState
 
-    fixCell gameConfig gameState coordinates cell
+    fixCell gameConfig gameState cache coordinates cell
   where
-    fixCell gameConfig gameState coordinates (CellState Undefined visibleState)= do
+    fixCell gameConfig gameState cache coordinates (CellState Undefined visibleState) = do
         let fixedCell = CellState internalState visibleState
         setCell coordinates fixedCell
         return fixedCell
       where
-        internalState =
-            case (remainingMines, remainingCells - remainingMines, safe) of
-              (0, _, _) -> Safe
-              (_, 0, _) -> Mine
-              (_, _, True) -> Safe
-              (_, freeCells, _) -> case freeCells `mod` remainingMines of
-                  1 -> Mine
-                  _ -> Safe
-          where
-            numMines = getNumMines gameConfig
-            fixedMines = foldr ((+) . (fromEnum . isMine)) 0 $ concat gameState
-            remainingCells = foldr ((+) . (fromEnum . isUndefined)) 0 $ concat gameState
-            remainingMines = numMines - fixedMines
+        internalState
+          | remainingMines cache == 0 = Safe
+          | freeCells cache == 0 = Mine
+          | safe = Safe
+          | otherwise = case freeCells cache `mod` remainingMines cache of
+              1 -> Mine
+              _ -> Safe
 
-    fixCell _ _ _ cell = return cell
+    fixCell _ _ _ _ cell = return cell
 
 updateCell :: GameConfig -> Action -> GameState -> GameState
 updateCell gameConfig action state =
@@ -110,7 +112,10 @@ toggleFlagState (CellState inner Flagged) = CellState inner Unsure
 toggleFlagState (CellState inner Unsure) = CellState inner Unknown
 toggleFlagState cellState = cellState
 
-initializeCellStates :: Integral a => a -> a -> a -> GameState
-initializeCellStates width height mines = [
-      [CellState Undefined Unknown | y <- [0 .. (width - 1)]]
-    | x <- [0 .. (height - 1)]]
+initializeCellStates :: Int -> Int -> Int -> GameState
+initializeCellStates width height mines = GameState [
+      [newCell | y <- [0 .. (width - 1)]]
+    | x <- [0 .. (height - 1)]] (StateCache mines (numCells - mines))
+  where
+    newCell = CellState Undefined Unknown
+    numCells = width * height

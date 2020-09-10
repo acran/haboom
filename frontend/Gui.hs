@@ -56,7 +56,7 @@ bodyElement gameConfig dynGameState = divClass "container" $ do
 statusText :: DomBuilder t m => GameConfig -> GameState -> m ()
 statusText gameConfig gameState = el "div" $
     text $ pack $ "Mines: " ++ show flaggedCells ++ "/" ++ show (getNumMines gameConfig)
-  where flaggedCells = foldr ((+) . (fromEnum . isFlagged)) 0 $ concat gameState
+  where flaggedCells = foldr ((+) . (fromEnum . isFlagged)) 0 $ concat $ getCells gameState
 
 controlsDiv :: MonadWidget t m => GameConfig -> m (Event t GameConfig)
 controlsDiv defaultConfig = do
@@ -105,7 +105,7 @@ generateBoardRow row width gameState dynDebugMode = divClass "board-row" $ do
 
 generateBoardCell :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> Dynamic t Bool -> m (Event t Action)
 generateBoardCell row column dynGameState dynDebugMode = do
-    let dynCellState = getCellState <$> dynGameState
+    let dynCellState = getCellState . getCells <$> dynGameState
     let dynClass = getDynClass <$> dynDebugMode <*> dynCellState
 
     let dynAttr = classToAttr <$> dynClass

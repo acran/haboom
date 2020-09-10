@@ -31,6 +31,8 @@ data CellState = CellState {
 instance Semigroup CellState
 instance Monoid CellState
 
+type CellStates = [[CellState]]
+
 isMine :: CellState -> Bool
 isMine (CellState Mine _) = True
 isMine _ = False
@@ -47,15 +49,23 @@ isFlagged :: CellState -> Bool
 isFlagged (CellState _ Flagged) = True
 isFlagged _ = False
 
-type GameState = [[CellState]]
+data GameState = GameState {
+  getCells :: CellStates,
+  getCache :: StateCache
+}
 
-cellFromState :: BoardCoordinate -> GameState -> CellState
-cellFromState (BoardCoordinate column row) gameState = gameState !! row !! column
+data StateCache = StateCache {
+    remainingMines :: Int, -- ^number of floating mines
+    freeCells :: Int -- ^number of floating safe cells
+  }
+
+cellFromState :: BoardCoordinate -> CellStates -> CellState
+cellFromState (BoardCoordinate column row) cellStates = cellStates !! row !! column
 
 countCells :: (CellState -> Bool) -> [CellState] -> Int
 countCells predicate = foldr ((+) . (fromEnum . predicate)) 0
 
-countInState :: (CellState -> Bool) -> GameState -> Int
-countInState predicate gameState = countCells predicate $ concat gameState
+countInState :: (CellState -> Bool) -> CellStates -> Int
+countInState predicate cellStates = countCells predicate $ concat cellStates
 
 data Action = Reveal BoardCoordinate | ToggleFlag BoardCoordinate
