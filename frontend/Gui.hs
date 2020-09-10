@@ -47,9 +47,11 @@ bodyElement gameConfig dynGameState = divClass "container" $ do
     (gameConfigEvent, dynDebugMode) <- divClass "controls row justify-content-center" $ do
       gameConfigEvent <- divClass "col-lg-3 col-md-6 mt-2" $
         controlsDiv gameConfig
+      presetEvent <- divClass "col-lg-3 col-md-6 mt-2"
+        presetsDiv
       dynDebugMode <- divClass "col-lg-3 col-md-6 mt-2"
         tweaksDiv
-      return (gameConfigEvent, dynDebugMode)
+      return (leftmost [gameConfigEvent, presetEvent], dynDebugMode)
 
   return (gameConfigEvent, actionEvent)
 
@@ -74,6 +76,23 @@ controlsDiv defaultConfig = do
   let clickEvent = domEvent Click buttonElement
 
   return $ tagPromptlyDyn config clickEvent
+
+presetsDiv :: MonadWidget t m =>  m (Event t GameConfig)
+presetsDiv = do
+    let presets = [
+            ("I'm too young to die", GameConfig 8 8 8),
+            ("Hey, not too rough", GameConfig 10 10 20),
+            ("Hurt me plenty", GameConfig 15 15 50),
+            ("Ultra-Violence", GameConfig 10 10 50)
+          ]
+    events <- sequence $ presetButton <$> presets
+    return $ leftmost events
+
+presetButton :: MonadWidget t m => (Text, GameConfig) -> m (Event t GameConfig)
+presetButton (label, config) = do
+  (buttonElement, _) <- elClass' "button" "btn btn-light w-100 mb-2" $ text label
+  let clickEvent = domEvent Click buttonElement
+  return $ tagPromptlyDyn (constDyn config) clickEvent
 
 tweaksDiv :: MonadWidget t m => m (Dynamic t Bool)
 tweaksDiv = el "div" $
