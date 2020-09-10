@@ -28,7 +28,11 @@ changeCell (BoardCoordinate column row) f = do
         remainingMines = getNumMines config - fixedMines
         remainingCells = countInState isUndefined newState
         freeCells = remainingCells - remainingMines
-      in StateCache remainingMines freeCells
+        gameStatus
+          | any (\x -> isMine x && isKnown x) $ concat newState = Lost
+          | countInState isKnown newState + getNumMines config == getBoardHeight config * getBoardWidth config = Won
+          | otherwise = Playing
+      in StateCache remainingMines freeCells gameStatus
 
 getCellFixed :: Bool -> BoardCoordinate -> GameMonad CellState
 getCellFixed safe coordinates = do
@@ -56,7 +60,8 @@ updateCell :: GameConfig -> Action -> GameState -> GameState
 updateCell gameConfig action state =
     snd $ execState performAction (gameConfig, state)
   where
-    performAction | (ToggleFlag coordinates) <- action = changeCell coordinates toggleFlagState
+    performAction | (gameStatus . getCache) state /= Playing = return ()
+                  | (ToggleFlag coordinates) <- action = changeCell coordinates toggleFlagState
                   | (Reveal coordinates) <- action = revealAction coordinates
 
 revealAction :: BoardCoordinate -> GameMonad ()
@@ -77,6 +82,8 @@ revealCell oldCell coordinates = do
     setCell coordinates newCell
 
     maybeRevealNeighbors newCell coordinates
+    gameStatus <- gameStatus . getCache <$> gets snd
+    maybeFixAll gameStatus
 
     return ()
   where
@@ -89,6 +96,11 @@ revealCell oldCell coordinates = do
       mapM revealAction neighbors
 
     maybeRevealNeighbors _ coordinates = return []
+
+    maybeFixAll Playing = return []
+    maybeFixAll _ = do
+      gameConfig <- gets fst
+      sequence [getCellFixed False (BoardCoordinate x y) | x <- [0..getBoardWidth gameConfig - 1], y <- [0..getBoardHeight gameConfig - 1]]
 
 neighborCoordinates :: BoardCoordinate -> GameMonad [BoardCoordinate]
 neighborCoordinates (BoardCoordinate x y) = do
@@ -115,7 +127,7 @@ toggleFlagState cellState = cellState
 initializeCellStates :: Int -> Int -> Int -> GameState
 initializeCellStates width height mines = GameState [
       [newCell | y <- [0 .. (width - 1)]]
-    | x <- [0 .. (height - 1)]] (StateCache mines (numCells - mines))
+    | x <- [0 .. (height - 1)]] (StateCache mines (numCells - mines) Playing)
   where
     newCell = CellState Undefined Unknown
     numCells = width * height

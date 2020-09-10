@@ -55,8 +55,12 @@ bodyElement gameConfig dynGameState = divClass "container" $ do
 
 statusText :: DomBuilder t m => GameConfig -> GameState -> m ()
 statusText gameConfig gameState = el "div" $
-    text $ pack $ "Mines: " ++ show flaggedCells ++ "/" ++ show (getNumMines gameConfig)
-  where flaggedCells = foldr ((+) . (fromEnum . isFlagged)) 0 $ concat $ getCells gameState
+    showStatus $ gameStatus $ getCache gameState
+  where
+    flaggedCells = foldr ((+) . (fromEnum . isFlagged)) 0 $ concat $ getCells gameState
+    showStatus Playing = text $ pack $ "Mines: " ++ show flaggedCells ++ "/" ++ show (getNumMines gameConfig)
+    showStatus Won = text $ "You win!"
+    showStatus Lost = text $ "You lose!"
 
 controlsDiv :: MonadWidget t m => GameConfig -> m (Event t GameConfig)
 controlsDiv defaultConfig = do
@@ -106,7 +110,8 @@ generateBoardRow row width gameState dynDebugMode = divClass "board-row" $ do
 generateBoardCell :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> Dynamic t Bool -> m (Event t Action)
 generateBoardCell row column dynGameState dynDebugMode = do
     let dynCellState = getCellState . getCells <$> dynGameState
-    let dynClass = getDynClass <$> dynDebugMode <*> dynCellState
+    let dynGameStatus = gameStatus . getCache <$> dynGameState
+    let dynClass = getDynClass <$> dynDebugMode <*> dynCellState <*> dynGameStatus
 
     let dynAttr = classToAttr <$> dynClass
 
@@ -121,21 +126,24 @@ generateBoardCell row column dynGameState dynDebugMode = do
 
     getCellState gameState = gameState !! row !! column
 
-    getDynClass debugMode (CellState internalState visibleState) =
+    getDynClass debugMode (CellState internalState visibleState) status =
         pack $ "cell" ++ clickable ++ visibility ++ label ++ flag ++ hint
       where
-        clickable | not revealed, Unknown <- visibleState = " clickable"
-                  | not revealed, Unsure <- visibleState = " clickable"
+        clickable | Playing <- status, not revealed, Unknown <- visibleState = " clickable"
+                  | Playing <- status, not revealed, Unsure <- visibleState = " clickable"
                   | otherwise = ""
 
         visibility | revealed = " known"
                    | otherwise = " unknown"
 
         label | revealed, Mine <- internalState = " bomb"
+              | Lost <- status, Mine <- internalState = " bomb"
+              | Won <- status, Mine <- internalState = " bomb-win"
               | Labeled x <- visibleState = " label-" ++ show x
               | otherwise = ""
 
-        flag | Flagged <- visibleState = " flag"
+        flag | status /= Playing, Mine <- internalState = ""
+             | Flagged <- visibleState = " flag"
              | Unsure <- visibleState = " unsure"
              | otherwise = ""
 

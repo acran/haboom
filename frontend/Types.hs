@@ -49,14 +49,23 @@ isFlagged :: CellState -> Bool
 isFlagged (CellState _ Flagged) = True
 isFlagged _ = False
 
+isKnown :: CellState -> Bool
+isKnown (CellState _ Known) = True
+isKnown (CellState _ (Labeled _)) = True
+isKnown _ = False
+
 data GameState = GameState {
   getCells :: CellStates,
   getCache :: StateCache
 }
 
+data GameStatus = Playing | Won | Lost
+  deriving Eq
+
 data StateCache = StateCache {
     remainingMines :: Int, -- ^number of floating mines
-    freeCells :: Int -- ^number of floating safe cells
+    freeCells :: Int, -- ^number of floating safe cells
+    gameStatus :: GameStatus -- ^whether game was won/lost or is still playing
   }
 
 cellFromState :: BoardCoordinate -> CellStates -> CellState
