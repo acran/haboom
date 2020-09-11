@@ -12,6 +12,7 @@ data GameConfig =
     boardHeight :: Int,
     totalMines :: Int
   }
+  deriving Eq
 
 data BoardCoordinate = BoardCoordinate {
   boardColumn :: Int,
@@ -19,7 +20,7 @@ data BoardCoordinate = BoardCoordinate {
 }
 
 data InternalCellState = Safe | Mine | Undefined
-  deriving Show
+  deriving (Eq, Show)
 
 data VisibleCellState = Unknown
                       | Known
@@ -29,13 +30,13 @@ data VisibleCellState = Unknown
                           totalLabel :: Int,
                           countdownLabel:: Int
                         }
-  deriving Show
+  deriving (Eq, Show)
 
 data CellState = CellState {
     internalState :: InternalCellState,
     visibleState :: VisibleCellState
   }
-  deriving Show
+  deriving (Eq, Show)
 
 instance Semigroup CellState
 instance Monoid CellState
@@ -69,6 +70,7 @@ data GameState = GameState {
   cells :: CellStates,
   globalState :: GlobalGameState
 }
+  deriving Eq
 
 undo :: GameState -> GameState
 undo state = fromMaybe state $ previousState state
@@ -81,6 +83,7 @@ data GlobalGameState = GlobalGameState {
     freeCells :: Int, -- ^number of floating safe cells
     playState :: PlayState -- ^whether game was won/lost or is still playing
   }
+  deriving Eq
 
 cellFromState :: BoardCoordinate -> CellStates -> CellState
 cellFromState (BoardCoordinate column row) cellStates = cellStates !! row !! column
