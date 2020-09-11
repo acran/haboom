@@ -21,6 +21,7 @@ data DisplaySettings = DisplaySettings {
 
 headElement :: MonadWidget t m => m ()
 headElement = do
+  elAttr "meta" ("name" =: "viewport" <> "content" =: "width=device-width") blank
   el "title" $ text "Haboom"
   addStyleSheet "css/bootstrap.min.css"
   addStyleSheet "css/style.css"
@@ -39,17 +40,17 @@ bodyElement gameConfig dynGameState = divClass "container" $ do
   el "h1" $ text "Haboom"
 
   rec
-    actionEvent <- divClass "card m-2" $ do
-      actionEvent <- divClass "row justify-content-center p-3" $
-        divClass "board" $
+    actionEvent <- divClass "card overflow-auto" $
+      divClass "card-body" $ do
+        actionEvent <- divClass "board" $
           boardDiv gameConfig dynGameState dynDisplaySettings
 
-      divClass "row justify-content-center" $
-        dyn $ statusText gameConfig <$> dynGameState
+        el "div" $
+          dyn $ statusText gameConfig <$> dynGameState
 
-      return actionEvent
+        return actionEvent
 
-    (gameConfigEvent, dynDisplaySettings, undoEvent) <- divClass "controls row justify-content-center" $ do
+    (gameConfigEvent, dynDisplaySettings, undoEvent) <- divClass "row" $ do
       gameConfigEvent <- divClass "col-lg-3 col-md-6 mt-2" $
         controlsDiv gameConfig
       presetEvent <- divClass "col-lg-3 col-md-6 mt-2"
@@ -124,16 +125,18 @@ undoButton gameState = do
       ]
 
 tweaksDiv :: MonadWidget t m => m (Dynamic t DisplaySettings)
-tweaksDiv = el "div" $ do
-  debugMode <- el "label" $ do
-    debugMode <- checkbox False def
-    text "Debug mode"
-    return $ value debugMode
-  countdownMode <- el "label" $ do
-    countdownMode <- checkbox False def
-    text "Countdown mode "
-    elAttr "abbr" ("title" =: "Instead of showing the total number of mines around a tile, show the remaining (based on placed flags)") $ text "(?)"
-    return $ value countdownMode
+tweaksDiv = do
+  debugMode <- el "div" $
+    el "label" $ do
+      debugMode <- checkbox False def
+      text " Debug mode"
+      return $ value debugMode
+  countdownMode <- el "div" $
+    el "label" $ do
+      countdownMode <- checkbox False def
+      text " Countdown mode "
+      elAttr "abbr" ("title" =: "Instead of showing the total number of mines around a tile, show the remaining (based on placed flags)") $ text "(?)"
+      return $ value countdownMode
 
   return $ DisplaySettings <$> debugMode <*> countdownMode
 
