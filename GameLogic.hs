@@ -9,13 +9,13 @@ import Types
 newGame :: GameConfig -> GameState
 newGame config = GameState config Nothing cellStates globalState
   where
-    globalState = GlobalGameState numMines (numCells - numMines) Playing
     numMines = totalMines config
     numCells = totalCells config
+    globalState = GlobalGameState numMines (numCells - numMines) Playing
+
     newCell = CellState Undefined Unknown
-    cellStates = flip map [0 .. boardHeight config - 1] $
-      \_ -> flip map [0 .. boardWidth config - 1] $
-        const newCell
+    row = flip map [0 .. boardWidth config - 1] $ const newCell
+    cellStates = flip map [0 .. boardHeight config - 1] $ const row
 
 getCellFixed :: Bool -> BoardCoordinate -> GameMonad CellState
 getCellFixed safe coordinates = do
@@ -23,9 +23,9 @@ getCellFixed safe coordinates = do
     globalState <- getGlobalState
     let cell = cellFromState coordinates gameState
 
-    fixCell gameState globalState coordinates cell
+    fixCell globalState coordinates cell
   where
-    fixCell gameState globalState coordinates (CellState Undefined visibleState) = do
+    fixCell globalState coordinates (CellState Undefined visibleState) = do
         let fixedCell = CellState internalState visibleState
         setCell coordinates fixedCell
         return fixedCell
@@ -38,7 +38,7 @@ getCellFixed safe coordinates = do
               1 -> Mine
               _ -> Safe
 
-    fixCell _ _ _ cell = return cell
+    fixCell _ _ cell = return cell
 
 updateCell :: Action -> GameState -> GameState
 updateCell action state
@@ -97,7 +97,11 @@ revealCell force cell coordinates
       maybeFixAll Playing = return []
       maybeFixAll _ = do
         gameConfig <- getConfig
-        sequence [getCellFixed False (BoardCoordinate x y) | x <- [0..boardWidth gameConfig - 1], y <- [0..boardHeight gameConfig - 1]]
+        sequence [
+            getCellFixed False (BoardCoordinate x y)
+            | x <- [0..boardWidth gameConfig - 1],
+              y <- [0..boardHeight gameConfig - 1]
+          ]
 
 neighborCoordinates :: BoardCoordinate -> GameMonad [BoardCoordinate]
 neighborCoordinates (BoardCoordinate x y) = do

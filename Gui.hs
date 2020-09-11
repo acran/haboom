@@ -44,7 +44,7 @@ bodyElement gameConfig dynGameState = divClass "container" $ do
     actionEvent <- divClass "card overflow-auto" $
       divClass "card-body" $ do
         actionEvent <- divClass "board" $
-          boardDiv gameConfig dynGameState dynDisplaySettings
+          boardDiv (boardHeight gameConfig) (boardWidth gameConfig) dynGameState dynDisplaySettings
 
         el "div" $
           dyn $ statusText gameConfig <$> dynGameState
@@ -71,7 +71,7 @@ statusText :: DomBuilder t m => GameConfig -> GameState -> m ()
 statusText gameConfig gameState = el "div" $
     showStatus $ playState $ globalState gameState
   where
-    flaggedCells = foldr ((+) . (fromEnum . isFlagged)) 0 $ concat $ cells gameState
+    flaggedCells = countInState isFlagged $ cells gameState
     showStatus Playing = text $ pack $ "Mines: " ++ show flaggedCells ++ "/" ++ show (totalMines gameConfig)
     showStatus Win = text $ "You win!"
     showStatus Dead = text $ "You lose!"
@@ -149,7 +149,10 @@ settingsDiv = do
 
 numberInput :: MonadWidget t m => Text -> Int -> m (Dynamic t Int)
 numberInput label defValue = divClass "input-group mt-2" $ do
-    divClass "input-group-prepend" $ divClass "input-group-text" $ text label
+    divClass "input-group-prepend" $
+      divClass "input-group-text" $
+        text label
+
     inputElement <- textInput $
       def & textInputConfig_inputType .~ "number"
         & textInputConfig_initialValue .~ (pack . show $ defValue)
@@ -161,23 +164,26 @@ numberInput label defValue = divClass "input-group mt-2" $ do
     getValue (Right (value, _)) = value
     getValue _ = defValue
 
-boardDiv :: MonadWidget t m => GameConfig -> Dynamic t GameState -> Dynamic t DisplaySettings -> m (Event t Action)
-boardDiv gameConfig dynGameState dynDisplaySettings = do
-  events <- sequence [generateBoardRow x (boardWidth gameConfig) dynGameState dynDisplaySettings | x <- [0 .. (boardHeight gameConfig - 1)]]
-  return $ leftmost events
+boardDiv :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> Dynamic t DisplaySettings -> m (Event t Action)
+boardDiv rows columns dynState dynDisplaySettings = do
+    events <- sequence $ generateRow columns <$> [0 .. rows - 1]
+    return $ leftmost events
+  where
+    generateRow = generateBoardRow dynState dynDisplaySettings
 
-generateBoardRow :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> Dynamic t DisplaySettings -> m (Event t Action)
-generateBoardRow row width gameState dynDisplaySettings = divClass "board-row" $ do
-  events <- sequence [generateBoardCell row y gameState dynDisplaySettings | y <- [0 .. (width - 1)]]
-  return $ leftmost events
+generateBoardRow :: MonadWidget t m => Dynamic t GameState -> Dynamic t DisplaySettings -> Int -> Int -> m (Event t Action)
+generateBoardRow gameState dynDisplaySettings width row = divClass "board-row" $ do
+    events <- sequence $ generateCell row <$> [0 .. width - 1]
+    return $ leftmost events
+  where
+    generateCell = generateBoardCell gameState dynDisplaySettings
 
-generateBoardCell :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> Dynamic t DisplaySettings -> m (Event t Action)
-generateBoardCell row column dynGameState dynDisplaySettings= do
-    let dynCellState = getCellState . cells <$> dynGameState
-    let dynPlayState = playState . globalState <$> dynGameState
+generateBoardCell :: MonadWidget t m => Dynamic t GameState -> Dynamic t DisplaySettings -> Int -> Int -> m (Event t Action)
+generateBoardCell dynState dynDisplaySettings row column = do
+    let dynCellState = cellFromState (BoardCoordinate column row) . cells <$> dynState
+    let dynPlayState = playState . globalState <$> dynState
 
-    let dynClass = getDynClass <$> dynDisplaySettings <*> dynCellState <*> dynPlayState
-    let dynAttr = classToAttr <$> dynClass
+    let dynAttr = classAttr <$> dynDisplaySettings <*> dynCellState <*> dynPlayState
 
     (cellElement, _) <- cellElement dynAttr
 
@@ -187,29 +193,24 @@ generateBoardCell row column dynGameState dynDisplaySettings= do
 
     return $ leftmost [revealAction, revealAreaAction, toggleAction]
   where
-    classToAttr classString = fromList [("class", classString)]
-
-    getCellState gameState = gameState !! row !! column
-
-    getDynClass settings (CellState internalState visibleState) status =
-        pack $ "cell" ++ clickable ++ visibility ++ label ++ flag ++ hint
+    classAttr settings cell@(CellState internalState visibleState) status =
+        fromList [("class", pack $ "cell" ++ clickable ++ visibility ++ label ++ flag ++ hint)]
       where
+        known = isKnown cell
+
         clickable
-          | Playing <- status, not revealed, Unknown <- visibleState = " clickable"
-          | Playing <- status, not revealed, Unsure <- visibleState = " clickable"
+          | Playing <- status, not known, visibleState == Unknown || visibleState == Unsure = " clickable"
           | otherwise = ""
 
         visibility
-          | revealed = " known"
+          | known = " known"
           | otherwise = " unknown"
 
         label
-          | revealed, Mine <- internalState = " bomb"
-          | Dead <- status, Mine <- internalState = " bomb"
+          | Mine <- internalState, known || status == Dead = " bomb"
           | Win <- status, Mine <- internalState = " bomb-win"
-          | Labeled 0 _ <- visibleState = ""
-          | settings & countdownMode, Labeled _ x <- visibleState = " label-" ++ show x
-          | Labeled x _ <- visibleState = " label-" ++ show x
+          | settings & countdownMode, Labeled total x <- visibleState, total /= 0 = " label-" ++ show x
+          | Labeled x _ <- visibleState, x /=0 = " label-" ++ show x
           | otherwise = ""
 
         flag
@@ -219,14 +220,9 @@ generateBoardCell row column dynGameState dynDisplaySettings= do
           | otherwise = ""
 
         hint
-          | settings & debugMode, not revealed, Mine <- internalState = " hint hint-mine"
-          | settings & debugMode, not revealed, Safe <- internalState = " hint hint-safe"
+          | settings & debugMode, not known, Mine <- internalState = " hint hint-mine"
+          | settings & debugMode, not known, Safe <- internalState = " hint hint-safe"
           | otherwise = ""
-
-        revealed
-          | Known <- visibleState = True
-          | Labeled _ _<- visibleState = True
-          | otherwise = False
 
 cellElement :: forall t m a. (DomBuilder t m, PostBuild t m) => Dynamic t (Map Text Text) -> m (Element EventResult (DomBuilderSpace m) t, ())
 cellElement attrs = do
