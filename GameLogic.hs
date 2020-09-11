@@ -8,25 +8,26 @@ import Types
 
 getCellFixed :: Bool -> BoardCoordinate -> GameMonad CellState
 getCellFixed safe coordinates = do
-    GameState gameConfig _ gameState cache <- get
+    gameState <- getCells
+    globalState <- getGlobalState
     let cell = cellFromState coordinates gameState
 
-    fixCell gameConfig gameState cache coordinates cell
+    fixCell gameState globalState coordinates cell
   where
-    fixCell gameConfig gameState cache coordinates (CellState Undefined visibleState) = do
+    fixCell gameState globalState coordinates (CellState Undefined visibleState) = do
         let fixedCell = CellState internalState visibleState
         setCell coordinates fixedCell
         return fixedCell
       where
         internalState
-          | remainingMines cache == 0 = Safe
-          | freeCells cache == 0 = Mine
+          | remainingMines globalState == 0 = Safe
+          | freeCells globalState == 0 = Mine
           | safe = Safe
-          | otherwise = case freeCells cache `mod` remainingMines cache of
+          | otherwise = case freeCells globalState `mod` remainingMines globalState of
               1 -> Mine
               _ -> Safe
 
-    fixCell _ _ _ _ cell = return cell
+    fixCell _ _ _ cell = return cell
 
 updateCell :: Action -> GameState -> GameState
 updateCell action state
@@ -68,7 +69,7 @@ revealCell _ oldCell coordinates = do
     setCell coordinates newCell
 
     maybeRevealNeighbors newCell coordinates
-    playState <- playState . globalState <$> get
+    playState <- playState <$> getGlobalState
     maybeFixAll playState
 
     return ()
@@ -84,12 +85,12 @@ revealCell _ oldCell coordinates = do
 
     maybeFixAll Playing = return []
     maybeFixAll _ = do
-      gameConfig <- gets gameConfig
+      gameConfig <- getConfig
       sequence [getCellFixed False (BoardCoordinate x y) | x <- [0..boardWidth gameConfig - 1], y <- [0..boardHeight gameConfig - 1]]
 
 neighborCoordinates :: BoardCoordinate -> GameMonad [BoardCoordinate]
 neighborCoordinates (BoardCoordinate x y) = do
-  gameConfig <- gets gameConfig
+  gameConfig <- getConfig
   return [
       BoardCoordinate nx ny
     | nx <- [x-1 .. x+1],

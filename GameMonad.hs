@@ -24,20 +24,6 @@ instance Monad GameMonad where
       (GameMonad cont) = f val_x
     in cont s1
 
-get :: GameMonad GameState
-get = GameMonad $ \s -> (s, s)
-
-gets :: (GameState -> b) -> GameMonad b
-gets = flip fmap get
-
-put :: GameState -> GameMonad ()
-put x = GameMonad $ \_ -> ((), x)
-
-modify :: (GameState -> GameState) -> GameMonad ()
-modify f = do
-  a <- get
-  put (f a)
-
 execState :: GameMonad a -> GameState -> GameState
 execState m x = snd (runState m x)
 
@@ -47,21 +33,34 @@ execStateWithUndo action state
    | otherwise = result {previousState = Just state}
   where result = execState action state
 
+get' :: GameMonad GameState
+get' = GameMonad $ \s -> (s, s)
+
+getConfig :: GameMonad GameConfig
+getConfig = gameConfig <$> get'
+
+getGlobalState :: GameMonad GlobalGameState
+getGlobalState = globalState <$> get'
+
+getCells :: GameMonad CellStates
+getCells = cells <$> get'
+
 getCell :: BoardCoordinate -> GameMonad CellState
 getCell coordinates = do
-  cellStates <- gets cells
+  cellStates <- getCells
   let cell = cellFromState coordinates cellStates
   return cell
 
 setCell :: BoardCoordinate -> CellState -> GameMonad ()
 setCell (BoardCoordinate column row) cell = do
-    state  <- get
+    state  <- get'
     let updatedCells = over (ix row) (over (ix column) $ const cell) $ state & cells
     put $ state {
         cells = updatedCells,
         globalState = updateGlobalState updatedCells $ gameConfig state
       }
   where
+    put x = GameMonad $ \_ -> ((), x)
     updateGlobalState cellStates config =
       let
         fixedMines = countInState isMine cellStates
