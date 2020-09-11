@@ -6,6 +6,17 @@ import Data.Maybe (fromMaybe)
 import GameMonad
 import Types
 
+newGame :: GameConfig -> GameState
+newGame config = GameState config Nothing cellStates globalState
+  where
+    globalState = GlobalGameState numMines (numCells - numMines) Playing
+    numMines = totalMines config
+    numCells = totalCells config
+    newCell = CellState Undefined Unknown
+    cellStates = flip map [0 .. boardHeight config - 1] $
+      \_ -> flip map [0 .. boardWidth config - 1] $
+        const newCell
+
 getCellFixed :: Bool -> BoardCoordinate -> GameMonad CellState
 getCellFixed safe coordinates = do
     gameState <- getCells
@@ -126,14 +137,3 @@ updateCountdownLabel coordinates = do
   where
     updatedCounter (CellState innerState (Labeled mines _)) flags = (CellState innerState (Labeled mines (mines-flags)))
     updatedCounter cell _ = cell
-
-initializeCellStates :: GameConfig -> GameState
-initializeCellStates config = GameState config Nothing [
-      [newCell | y <- [0 .. (width - 1)]]
-    | x <- [0 .. (height - 1)]] (GlobalGameState mines (numCells - mines) Playing)
-  where
-    width = boardWidth config
-    height = boardHeight config
-    mines = totalMines config
-    newCell = CellState Undefined Unknown
-    numCells = width * height

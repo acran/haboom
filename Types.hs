@@ -14,6 +14,9 @@ data GameConfig =
   }
   deriving Eq
 
+totalCells :: GameConfig -> Int
+totalCells config = boardWidth config * boardHeight config
+
 data BoardCoordinate = BoardCoordinate {
   boardColumn :: Int,
   boardRow :: Int
