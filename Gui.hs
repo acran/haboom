@@ -24,11 +24,11 @@ headElement :: MonadWidget t m => m ()
 headElement = do
   elAttr "meta" ("name" =: "viewport" <> "content" =: "width=device-width") blank
   el "title" $ text "Haboom"
-  addStyleSheet "css/bootstrap.min.css"
-  addStyleSheet "css/style.css"
+  styleSheet "css/bootstrap.min.css"
+  styleSheet "css/style.css"
 
-addStyleSheet :: DomBuilder t m => Text -> m ()
-addStyleSheet uri = elAttr "link" styleSheetAttr blank
+styleSheet :: DomBuilder t m => Text -> m ()
+styleSheet uri = elAttr "link" styleSheetAttr blank
   where
     styleSheetAttr = fromList [
         ("rel", "stylesheet"),
@@ -37,23 +37,23 @@ addStyleSheet uri = elAttr "link" styleSheetAttr blank
       ]
 
 bodyElement :: MonadWidget t m => GameConfig -> Dynamic t GameState -> m (Event t GameConfig, Event t Action)
-bodyElement gameConfig dynGameState = divClass "container" $ do
+bodyElement config dynGameState = divClass "container" $ do
   el "h1" $ text "Haboom"
 
   rec
     actionEvent <- divClass "card overflow-auto" $
       divClass "card-body" $ do
         actionEvent <- divClass "board" $
-          boardDiv (boardHeight gameConfig) (boardWidth gameConfig) dynGameState dynDisplaySettings
+          boardDiv (boardHeight config) (boardWidth config) dynGameState dynDisplaySettings
 
         el "div" $
-          dyn $ statusText gameConfig <$> dynGameState
+          dyn $ statusText config <$> dynGameState
 
         return actionEvent
 
     (gameConfigEvent, dynDisplaySettings, undoEvent) <- divClass "row" $ do
       gameConfigEvent <- divClass "col-lg-3 col-md-6 mt-2" $
-        controlsDiv gameConfig
+        controlsDiv config
 
       presetEvent <- divClass "col-lg-3 col-md-6 mt-2"
         presetsDiv
@@ -68,11 +68,12 @@ bodyElement gameConfig dynGameState = divClass "container" $ do
   return (gameConfigEvent, leftmost [actionEvent, undoEvent])
 
 statusText :: DomBuilder t m => GameConfig -> GameState -> m ()
-statusText gameConfig gameState = el "div" $
-    showStatus $ playState $ globalState gameState
+statusText config state = el "div" $
+    showStatus $ state & globalState & playState
   where
-    flaggedCells = countInState isFlagged $ cells gameState
-    showStatus Playing = text $ pack $ "Mines: " ++ show flaggedCells ++ "/" ++ show (totalMines gameConfig)
+    flags = countInState isFlagged $ cells state
+    mines = config & totalMines
+    showStatus Playing = text $ pack $ "Mines: " ++ show flags ++ "/" ++ show mines
     showStatus Win = text $ "You win!"
     showStatus Dead = text $ "You lose!"
 
@@ -83,11 +84,11 @@ controlsDiv defaultConfig = do
       elAttr "button" ("class" =: "btn btn-primary w-100" <> "type" =: "submit")
         $ text "New game"
 
-    widthInput <- numberInput "width" $ boardWidth defaultConfig
-    heightInput <- numberInput "height" $ boardHeight defaultConfig
-    minesInput <- numberInput "mines" $ totalMines defaultConfig
+    width <- numberInput "width" $ boardWidth defaultConfig
+    height <- numberInput "height" $ boardHeight defaultConfig
+    mines <- numberInput "mines" $ totalMines defaultConfig
 
-    return $ GameConfig <$> widthInput <*> heightInput <*> minesInput
+    return $ GameConfig <$> width <*> height <*> mines
 
   return $ tagPromptlyDyn config $ domEvent Submit formElement
 
@@ -128,41 +129,41 @@ undoButton gameState = do
 
 settingsDiv :: MonadWidget t m => m (Dynamic t DisplaySettings)
 settingsDiv = do
-  debugMode <- el "div" $
+  dynDebugMode <- el "div" $
     el "label" $ do
-      debugMode <- checkbox False def
+      debugModeBox <- checkbox False def
       text " Debug mode"
 
-      return $ value debugMode
+      return $ value debugModeBox
 
-  countdownMode <- el "div" $
+  dynCountdownMode <- el "div" $
     el "label" $ do
-      countdownMode <- checkbox False def
+      countdownModeBox <- checkbox False def
       text " Countdown mode "
       elAttr "abbr"
         ("title" =: "Instead of showing the total number of mines around a tile, show the remaining (based on placed flags)") $
           text "(?)"
 
-      return $ value countdownMode
+      return $ value countdownModeBox
 
-  return $ DisplaySettings <$> debugMode <*> countdownMode
+  return $ DisplaySettings <$> dynDebugMode <*> dynCountdownMode
 
 numberInput :: MonadWidget t m => Text -> Int -> m (Dynamic t Int)
-numberInput label defValue = divClass "input-group mt-2" $ do
+numberInput label initialValue = divClass "input-group mt-2" $ do
     divClass "input-group-prepend" $
       divClass "input-group-text" $
         text label
 
     inputElement <- textInput $
       def & textInputConfig_inputType .~ "number"
-        & textInputConfig_initialValue .~ (pack . show $ defValue)
+        & textInputConfig_initialValue .~ (pack . show $ initialValue)
         & textInputConfig_attributes .~ constDyn ("class" =: "form-control")
 
     return $ parseInt <$> value inputElement
   where
     parseInt = getValue . decimal
     getValue (Right (value, _)) = value
-    getValue _ = defValue
+    getValue _ = initialValue
 
 boardDiv :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> Dynamic t DisplaySettings -> m (Event t Action)
 boardDiv rows columns dynState dynDisplaySettings = do
@@ -182,7 +183,6 @@ generateBoardCell :: MonadWidget t m => Dynamic t GameState -> Dynamic t Display
 generateBoardCell dynState dynDisplaySettings row column = do
     let dynCellState = cellFromState (BoardCoordinate column row) . cells <$> dynState
     let dynPlayState = playState . globalState <$> dynState
-
     let dynAttr = classAttr <$> dynDisplaySettings <*> dynCellState <*> dynPlayState
 
     (cellElement, _) <- cellElement dynAttr

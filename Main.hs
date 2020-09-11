@@ -6,11 +6,13 @@ import GameLogic
 import Gui
 import Types
 
+defaultConfig :: GameConfig
+defaultConfig = GameConfig 10 10 20
+
 main :: IO ()
 main = mainWidgetWithHead headElement $ do
-  let defaultConfig = GameConfig 10 10 20
   rec
-    evGameConfigEvent <- dyn $ flip fmap dynGameConfig $ \gameConfig -> do
+    nestedGameConfigEvent <- dyn $ flip fmap dynGameConfig $ \gameConfig -> do
       rec
         let initialState = newGame gameConfig
         dynGameState <- foldDyn updateCell initialState actionEvent
@@ -19,6 +21,6 @@ main = mainWidgetWithHead headElement $ do
 
       return gameConfigEvent
 
-    gameConfigEvent <- switchHold never evGameConfigEvent
+    gameConfigEvent <- switchHold never nestedGameConfigEvent
     dynGameConfig <- holdDyn defaultConfig gameConfigEvent
   return ()

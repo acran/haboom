@@ -13,15 +13,15 @@ newGame config = GameState config Nothing cellStates globalState
     numCells = totalCells config
     globalState = GlobalGameState numMines (numCells - numMines) Playing
 
-    newCell = CellState Undefined Unknown
-    row = flip map [0 .. boardWidth config - 1] $ const newCell
+    freshCell = CellState Undefined Unknown
+    row = flip map [0 .. boardWidth config - 1] $ const freshCell
     cellStates = flip map [0 .. boardHeight config - 1] $ const row
 
 getCellFixed :: Bool -> BoardCoordinate -> GameMonad CellState
 getCellFixed safe coordinates = do
-    gameState <- getCells
+    state <- getCells
     globalState <- getGlobalState
-    let cell = cellFromState coordinates gameState
+    let cell = cellFromState coordinates state
 
     fixCell globalState coordinates cell
   where
@@ -63,8 +63,8 @@ revealAreaAction coordinates = do
 
 revealAction :: Bool -> BoardCoordinate -> GameMonad ()
 revealAction force coordinates = do
-  oldCell <- getCellFixed True coordinates
-  revealCell force oldCell coordinates
+  cell <- getCellFixed True coordinates
+  revealCell force cell coordinates
   return ()
 
 revealCell :: Bool -> CellState -> BoardCoordinate -> GameMonad ()
@@ -79,8 +79,7 @@ revealCell force cell coordinates
       setCell coordinates newCell
 
       maybeRevealNeighbors newCell coordinates
-      playState <- playState <$> getGlobalState
-      maybeFixAll playState
+      maybeFixAll . playState <$> getGlobalState
 
       return ()
     where
@@ -96,16 +95,16 @@ revealCell force cell coordinates
 
       maybeFixAll Playing = return []
       maybeFixAll _ = do
-        gameConfig <- getConfig
+        config <- getConfig
         sequence [
-            getCellFixed False (BoardCoordinate x y)
-            | x <- [0..boardWidth gameConfig - 1],
-              y <- [0..boardHeight gameConfig - 1]
+            getCellFixed False (BoardCoordinate column row)
+            | column <- [0..boardWidth config - 1],
+              row <- [0..boardHeight config - 1]
           ]
 
 neighborCoordinates :: BoardCoordinate -> GameMonad [BoardCoordinate]
 neighborCoordinates (BoardCoordinate x y) = do
-  gameConfig <- getConfig
+  config <- getConfig
   return [
       BoardCoordinate nx ny
     | nx <- [x-1 .. x+1],
@@ -113,10 +112,10 @@ neighborCoordinates (BoardCoordinate x y) = do
 
       (nx, ny) /= (x, y),
       nx >= 0,
-      nx < boardWidth gameConfig,
+      nx < boardWidth config,
 
       ny >= 0,
-      ny < boardHeight gameConfig
+      ny < boardHeight config
     ]
 
 toggleFlagState :: BoardCoordinate -> GameMonad ()

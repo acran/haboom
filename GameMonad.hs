@@ -46,10 +46,7 @@ getCells :: GameMonad CellStates
 getCells = cells <$> get'
 
 getCell :: BoardCoordinate -> GameMonad CellState
-getCell coordinates = do
-  cellStates <- getCells
-  let cell = cellFromState coordinates cellStates
-  return cell
+getCell coordinates = cellFromState coordinates <$> getCells
 
 setCell :: BoardCoordinate -> CellState -> GameMonad ()
 setCell (BoardCoordinate column row) cell = do
