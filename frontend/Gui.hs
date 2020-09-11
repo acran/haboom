@@ -162,7 +162,7 @@ generateBoardCell row column dynGameState dynDisplaySettings= do
 
     let dynAttr = classToAttr <$> dynClass
 
-    (cellElement, _) <- cellElement Nothing "div" dynAttr blank
+    (cellElement, _) <- cellElement dynAttr
 
     let revealAction = Reveal (BoardCoordinate column row) <$ domEvent Click cellElement
     let revealAreaAction = RevealArea (BoardCoordinate column row) <$ domEvent Dblclick cellElement
@@ -205,15 +205,10 @@ generateBoardCell row column dynGameState dynDisplaySettings= do
                  | Labeled _ _<- visibleState = True
                  | otherwise = False
 
--- modified version of elDynAttrNS' to add preventDefault
-cellElement :: forall t m a. (DomBuilder t m, PostBuild t m) => Maybe Text -> Text -> Dynamic t (Map Text Text) -> m a -> m (Element EventResult (DomBuilderSpace m) t, a)
-cellElement mns elementTag attrs child = do
+cellElement :: forall t m a. (DomBuilder t m, PostBuild t m) => Dynamic t (Map Text Text) -> m (Element EventResult (DomBuilderSpace m) t, ())
+cellElement attrs = do
   modifyAttrs <- dynamicAttributesToModifyAttributes attrs
   let cfg = (def :: ElementConfig EventResult t (DomBuilderSpace m))
-        & elementConfig_namespace .~ mns
         & modifyAttributes .~ fmapCheap mapKeysToAttributeName modifyAttrs
         & elementConfig_eventSpec %~ addEventSpecFlags (Proxy :: Proxy (DomBuilderSpace m)) Contextmenu (const preventDefault)
-  result <- element elementTag cfg child
-  postBuild <- getPostBuild
-  notReadyUntil postBuild
-  return result
+  element "div" cfg blank
