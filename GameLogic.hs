@@ -1,7 +1,6 @@
 module GameLogic where
 
 import Control.Lens (view, ix, over)
-import Control.Monad.State (modify, execState, gets, put, get, State)
 import Data.Maybe (fromMaybe)
 
 import GameMonad
