@@ -1,5 +1,7 @@
 module Types where
 
+import Data.Maybe (fromMaybe)
+
 -- | Board configuration for a new game
 data GameConfig =
   -- | create new game configuration:
@@ -67,6 +69,9 @@ data GameState = GameState {
   cells :: CellStates,
   globalState :: GlobalGameState
 }
+
+undo :: GameState -> GameState
+undo state = fromMaybe state $ previousState state
 
 data PlayState = Playing | Win | Dead
   deriving Eq

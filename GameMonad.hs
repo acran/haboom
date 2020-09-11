@@ -40,6 +40,10 @@ modify f = do
 execState :: GameMonad a -> GameState -> GameState
 execState m x = snd (runState m x)
 
+execStateWithUndo :: GameMonad a -> GameState -> GameState
+execStateWithUndo action state = result {previousState = Just state}
+  where result = execState action state
+
 getCell :: BoardCoordinate -> GameMonad CellState
 getCell coordinates = do
   cellStates <- gets cells

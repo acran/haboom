@@ -29,21 +29,12 @@ getCellFixed safe coordinates = do
     fixCell _ _ _ _ cell = return cell
 
 updateCell :: Action -> GameState -> GameState
-updateCell action state =
-    execState performAction state
-  where
-    performAction | Undo <- action, (playState . globalState) state /= Win = do
-                    current@(GameState config undoState _ _) <- get
-                    put (fromMaybe current undoState)
-
-                  | (playState . globalState) state /= Playing = return ()
-                  | (ToggleFlag coordinates) <- action = toggleFlagState coordinates
-                  | (RevealArea coordinates) <- action = revealAreaAction coordinates
-                  | (Reveal coordinates) <- action = do
-                      undoState <- get
-                      revealAction False coordinates
-                      modify $
-                        \(GameState config _ cellStates cache) -> (GameState config (Just undoState) cellStates cache)
+updateCell action state
+  | Undo <- action, (playState . globalState) state /= Win = undo state
+  | (playState . globalState) state /= Playing = state
+  | (ToggleFlag coordinates) <- action = execState (toggleFlagState coordinates) state
+  | (RevealArea coordinates) <- action = execStateWithUndo (revealAreaAction coordinates) state
+  | (Reveal coordinates) <- action = execStateWithUndo (revealAction False coordinates) state
 
 revealAreaAction :: BoardCoordinate -> GameMonad ()
 revealAreaAction coordinates = do
@@ -52,11 +43,9 @@ revealAreaAction coordinates = do
   where
     revealArea cell
       | (CellState innerState (Labeled _ countdown)) <- cell, countdown <= 0 = do
-          undoState <- get
           neighbors <- neighborCoordinates coordinates
           sequence $ revealAction False <$> neighbors
-          modify $
-            \(GameState config _ cellStates cache) -> GameState config (Just undoState) cellStates cache
+          return ()
 
       | otherwise = return ()
 
