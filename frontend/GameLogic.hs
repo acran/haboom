@@ -70,7 +70,7 @@ updateCell gameConfig action state =
                   | (RevealArea coordinates) <- action = revealAreaAction coordinates
                   | (Reveal coordinates) <- action = do
                       undoState <- gets snd
-                      revealAction coordinates
+                      revealAction False coordinates
                       modify $
                         \(config, GameState _ cellStates cache) -> (config, GameState (Just undoState) cellStates cache)
 
@@ -83,23 +83,23 @@ revealAreaAction coordinates = do
       | (CellState innerState (Labeled _ countdown)) <- cell, countdown <= 0 = do
           undoState <- gets snd
           neighbors <- neighborCoordinates coordinates
-          sequence $ revealAction <$> neighbors
+          sequence $ revealAction False <$> neighbors
           modify $
             \(config, GameState _ cellStates cache) -> (config, GameState (Just undoState) cellStates cache)
 
       | otherwise = return ()
 
-revealAction :: BoardCoordinate -> GameMonad ()
-revealAction coordinates = do
+revealAction :: Bool -> BoardCoordinate -> GameMonad ()
+revealAction force coordinates = do
   oldCell <- getCellFixed True coordinates
-  revealCell oldCell coordinates
+  revealCell force oldCell coordinates
   return ()
 
-revealCell :: CellState -> BoardCoordinate -> GameMonad ()
-revealCell (CellState _ Known) _ = return ()
-revealCell (CellState _ (Labeled _ _)) _ = return ()
-revealCell (CellState _ Flagged) _ = return ()
-revealCell oldCell coordinates = do
+revealCell :: Bool -> CellState -> BoardCoordinate -> GameMonad ()
+revealCell _ (CellState _ Known) _ = return ()
+revealCell _ (CellState _ (Labeled _ _)) _ = return ()
+revealCell False (CellState _ Flagged) _ = return ()
+revealCell _ oldCell coordinates = do
     neighbors <- fmap (getCellFixed False) <$> neighborCoordinates coordinates >>= sequence
     let mines = countCells isMine neighbors
     let flags = countCells isFlagged neighbors
@@ -118,7 +118,7 @@ revealCell oldCell coordinates = do
 
     maybeRevealNeighbors (CellState Safe (Labeled 0 _)) coordinates = do
       neighbors <- neighborCoordinates coordinates
-      mapM revealAction neighbors
+      mapM (revealAction True) neighbors
 
     maybeRevealNeighbors _ coordinates = return []
 
