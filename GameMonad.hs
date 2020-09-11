@@ -1,6 +1,7 @@
 module GameMonad where
 
 import Control.Lens (ix, over)
+import Data.Function ((&))
 
 import Types
 
@@ -53,22 +54,27 @@ getCell coordinates = do
   return cell
 
 setCell :: BoardCoordinate -> CellState -> GameMonad ()
-setCell coordinates cell = changeCell coordinates $ const cell
-
-changeCell :: BoardCoordinate -> (CellState -> CellState) -> GameMonad ()
-changeCell (BoardCoordinate column row) f = do
-    GameState config prev oldState _ <- get
-    let newState = over (ix row) (over (ix column) f) oldState
-    put $ GameState config prev newState (newCache config newState)
+setCell (BoardCoordinate column row) cell = do
+    state  <- get
+    let updatedCells = over (ix row) (over (ix column) $ const cell) $ state & cells
+    put $ state {
+        cells = updatedCells,
+        globalState = updateGlobalState updatedCells $ gameConfig state
+      }
   where
-    newCache config newState =
+    updateGlobalState cellStates config =
       let
-        fixedMines = countInState isMine newState
+        fixedMines = countInState isMine cellStates
         remainingMines = totalMines config - fixedMines
-        remainingCells = countInState isUndefined newState
+        remainingCells = countInState isUndefined cellStates
         freeCells = remainingCells - remainingMines
+
+        isRevealedMine cell = isMine cell && isKnown cell
+        totalCells =  boardHeight config * boardWidth config
+        revealedCells = countInState isKnown cellStates
         playState
-          | any (\x -> isMine x && isKnown x) $ concat newState = Dead
-          | countInState isKnown newState + totalMines config == boardHeight config * boardWidth config = Win
+          | any isRevealedMine $ concat cellStates = Dead
+          | revealedCells + totalMines config == totalCells = Win
           | otherwise = Playing
+
       in GlobalGameState remainingMines freeCells playState
