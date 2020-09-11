@@ -14,6 +14,11 @@ import Reflex.Dom hiding (Safe)
 
 import Types
 
+data DisplaySettings = DisplaySettings {
+  debugMode :: Bool,
+  countdownMode :: Bool
+}
+
 headElement :: MonadWidget t m => m ()
 headElement = do
   el "title" $ text "Haboom"
@@ -37,24 +42,24 @@ bodyElement gameConfig dynGameState = divClass "container" $ do
     actionEvent <- divClass "card m-2" $ do
       actionEvent <- divClass "row justify-content-center p-3" $
         divClass "board" $
-          boardDiv gameConfig dynGameState dynDebugMode dynCountdownMode
+          boardDiv gameConfig dynGameState dynDisplaySettings
 
       divClass "row justify-content-center" $
         dyn $ statusText gameConfig <$> dynGameState
 
       return actionEvent
 
-    (gameConfigEvent, dynDebugMode, dynCountdownMode, undoEvent) <- divClass "controls row justify-content-center" $ do
+    (gameConfigEvent, dynDisplaySettings, undoEvent) <- divClass "controls row justify-content-center" $ do
       gameConfigEvent <- divClass "col-lg-3 col-md-6 mt-2" $
         controlsDiv gameConfig
       presetEvent <- divClass "col-lg-3 col-md-6 mt-2"
         presetsDiv
-      (dynDebugMode, dynCountdownMode, undoEvent) <- divClass "col-lg-3 col-md-6 mt-2" $ do
-        (dynDebugMode, dynCountdownMode) <- tweaksDiv
+      (dynDisplaySettings, undoEvent) <- divClass "col-lg-3 col-md-6 mt-2" $ do
+        dynDisplaySettings <- tweaksDiv
         undoEvent <- undoButton dynGameState
-        return (dynDebugMode, dynCountdownMode, undoEvent)
+        return (dynDisplaySettings, undoEvent)
 
-      return (leftmost [gameConfigEvent, presetEvent], dynDebugMode, dynCountdownMode, undoEvent)
+      return (leftmost [gameConfigEvent, presetEvent], dynDisplaySettings, undoEvent)
 
   return (gameConfigEvent, leftmost [actionEvent, undoEvent])
 
@@ -110,7 +115,7 @@ undoButton gameState = do
         ("disabled", "disabled")
       ]
 
-tweaksDiv :: MonadWidget t m => m (Dynamic t Bool, Dynamic t Bool)
+tweaksDiv :: MonadWidget t m => m (Dynamic t DisplaySettings)
 tweaksDiv = el "div" $ do
   debugMode <- el "label" $ do
     debugMode <- checkbox False def
@@ -122,7 +127,7 @@ tweaksDiv = el "div" $ do
     elAttr "abbr" ("title" =: "Instead of showing the total number of mines around a tile, show the remaining (based on placed flags)") $ text "(?)"
     return $ value countdownMode
 
-  return (debugMode, countdownMode)
+  return $ DisplaySettings <$> debugMode <*> countdownMode
 
 numberInput :: MonadWidget t m => Text -> Int -> m (Dynamic t Int)
 numberInput label defValue = divClass "input-group mt-2" $ do
@@ -138,22 +143,22 @@ numberInput label defValue = divClass "input-group mt-2" $ do
         getValue (Right (value, _)) = value
         getValue _ = defValue
 
-boardDiv :: MonadWidget t m => GameConfig -> Dynamic t GameState -> Dynamic t Bool -> Dynamic t Bool -> m (Event t Action)
-boardDiv gameConfig dynGameState dynDebugMode dynCountdownMode = do
-  events <- sequence [generateBoardRow x (getBoardWidth gameConfig) dynGameState dynDebugMode dynCountdownMode | x <- [0 .. (getBoardHeight gameConfig - 1)]]
+boardDiv :: MonadWidget t m => GameConfig -> Dynamic t GameState -> Dynamic t DisplaySettings -> m (Event t Action)
+boardDiv gameConfig dynGameState dynDisplaySettings = do
+  events <- sequence [generateBoardRow x (getBoardWidth gameConfig) dynGameState dynDisplaySettings | x <- [0 .. (getBoardHeight gameConfig - 1)]]
   let actionEvent = leftmost events
   return actionEvent
 
-generateBoardRow :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> Dynamic t Bool -> Dynamic t Bool -> m (Event t Action)
-generateBoardRow row width gameState dynDebugMode dynCountdownMode = divClass "board-row" $ do
-  events <- sequence [generateBoardCell row y gameState dynDebugMode dynCountdownMode | y <- [0 .. (width - 1)]]
+generateBoardRow :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> Dynamic t DisplaySettings -> m (Event t Action)
+generateBoardRow row width gameState dynDisplaySettings = divClass "board-row" $ do
+  events <- sequence [generateBoardCell row y gameState dynDisplaySettings | y <- [0 .. (width - 1)]]
   return $ leftmost events
 
-generateBoardCell :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> Dynamic t Bool -> Dynamic t Bool -> m (Event t Action)
-generateBoardCell row column dynGameState dynDebugMode dynCountdownMode= do
+generateBoardCell :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> Dynamic t DisplaySettings -> m (Event t Action)
+generateBoardCell row column dynGameState dynDisplaySettings= do
     let dynCellState = getCellState . getCells <$> dynGameState
     let dynGameStatus = gameStatus . getCache <$> dynGameState
-    let dynClass = getDynClass <$> dynDebugMode <*> dynCountdownMode <*> dynCellState <*> dynGameStatus
+    let dynClass = getDynClass <$> dynDisplaySettings <*> dynCellState <*> dynGameStatus
 
     let dynAttr = classToAttr <$> dynClass
 
@@ -169,7 +174,7 @@ generateBoardCell row column dynGameState dynDebugMode dynCountdownMode= do
 
     getCellState gameState = gameState !! row !! column
 
-    getDynClass debugMode countdownMode (CellState internalState visibleState) status =
+    getDynClass settings (CellState internalState visibleState) status =
         pack $ "cell" ++ clickable ++ visibility ++ label ++ flag ++ hint
       where
         clickable | Playing <- status, not revealed, Unknown <- visibleState = " clickable"
@@ -183,7 +188,7 @@ generateBoardCell row column dynGameState dynDebugMode dynCountdownMode= do
               | Lost <- status, Mine <- internalState = " bomb"
               | Won <- status, Mine <- internalState = " bomb-win"
               | Labeled 0 _ <- visibleState = ""
-              | countdownMode, Labeled _ x <- visibleState = " label-" ++ show x
+              | settings & countdownMode, Labeled _ x <- visibleState = " label-" ++ show x
               | Labeled x _ <- visibleState = " label-" ++ show x
               | otherwise = ""
 
@@ -192,8 +197,8 @@ generateBoardCell row column dynGameState dynDebugMode dynCountdownMode= do
              | Unsure <- visibleState = " unsure"
              | otherwise = ""
 
-        hint | debugMode, not revealed, Mine <- internalState = " hint hint-mine"
-             | debugMode, not revealed, Safe <- internalState = " hint hint-safe"
+        hint | settings & debugMode, not revealed, Mine <- internalState = " hint hint-mine"
+             | settings & debugMode, not revealed, Safe <- internalState = " hint hint-safe"
              | otherwise = ""
 
         revealed | Known <- visibleState = True
