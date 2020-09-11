@@ -7,6 +7,7 @@ module Gui where
 
 import Control.Lens ((%~))
 import Data.Map (Map, fromList)
+import Data.Maybe (isJust)
 import Data.Proxy ( Proxy(..) )
 import Data.Text (pack, Text)
 import Data.Text.Read (decimal)
@@ -27,7 +28,7 @@ headElement = do
   addStyleSheet "css/style.css"
 
 addStyleSheet :: DomBuilder t m => Text -> m ()
-addStyleSheet uri = elAttr "link" styleSheetAttr $ return ()
+addStyleSheet uri = elAttr "link" styleSheetAttr blank
   where
     styleSheetAttr = fromList [
         ("rel", "stylesheet"),
@@ -53,10 +54,12 @@ bodyElement gameConfig dynGameState = divClass "container" $ do
     (gameConfigEvent, dynDisplaySettings, undoEvent) <- divClass "row" $ do
       gameConfigEvent <- divClass "col-lg-3 col-md-6 mt-2" $
         controlsDiv gameConfig
+
       presetEvent <- divClass "col-lg-3 col-md-6 mt-2"
         presetsDiv
+
       (dynDisplaySettings, undoEvent) <- divClass "col-lg-3 col-md-6 mt-2" $ do
-        dynDisplaySettings <- tweaksDiv
+        dynDisplaySettings <- settingsDiv
         undoEvent <- undoButton dynGameState
         return (dynDisplaySettings, undoEvent)
 
@@ -108,8 +111,7 @@ presetsDiv = do
 presetButton :: MonadWidget t m => (Text, GameConfig) -> m (Event t GameConfig)
 presetButton (label, config) = do
   (buttonElement, _) <- elClass' "button" "btn btn-light w-100 mb-2" $ text label
-  let clickEvent = domEvent Click buttonElement
-  return $ tagPromptlyDyn (constDyn config) clickEvent
+  return $ config <$ domEvent Click buttonElement
 
 undoButton :: MonadWidget t m => Dynamic t GameState -> m (Event t Action)
 undoButton gameState = do
@@ -117,48 +119,52 @@ undoButton gameState = do
     (buttonElement, _) <- elDynAttr' "button" dynAttr $ text "Undo"
     return $ Undo <$ domEvent Click buttonElement
   where
-    attr (GameState _ (Just _) _ (GlobalGameState _ _ Playing)) = fromList [("class", "btn btn-light btn-sm mt-2")]
-    attr (GameState _ (Just _) _ (GlobalGameState _ _ Dead)) = fromList [("class", "btn btn-light btn-sm mt-2")]
-    attr _ = fromList [
+    attr state
+      | isJust (previousState state) && Win /= playState (globalState state) = fromList [("class", "btn btn-light btn-sm mt-2")]
+      | otherwise  = fromList [
         ("class", "btn btn-light btn-sm mt-2"),
         ("disabled", "disabled")
       ]
 
-tweaksDiv :: MonadWidget t m => m (Dynamic t DisplaySettings)
-tweaksDiv = do
+settingsDiv :: MonadWidget t m => m (Dynamic t DisplaySettings)
+settingsDiv = do
   debugMode <- el "div" $
     el "label" $ do
       debugMode <- checkbox False def
       text " Debug mode"
+
       return $ value debugMode
+
   countdownMode <- el "div" $
     el "label" $ do
       countdownMode <- checkbox False def
       text " Countdown mode "
-      elAttr "abbr" ("title" =: "Instead of showing the total number of mines around a tile, show the remaining (based on placed flags)") $ text "(?)"
+      elAttr "abbr"
+        ("title" =: "Instead of showing the total number of mines around a tile, show the remaining (based on placed flags)") $
+          text "(?)"
+
       return $ value countdownMode
 
   return $ DisplaySettings <$> debugMode <*> countdownMode
 
 numberInput :: MonadWidget t m => Text -> Int -> m (Dynamic t Int)
 numberInput label defValue = divClass "input-group mt-2" $ do
-  divClass "input-group-prepend" $ divClass "input-group-text" $ text label
-  inputElement <- textInput $
-    def & textInputConfig_inputType .~ "number"
-      & textInputConfig_initialValue .~ (pack . show $ defValue)
-      & textInputConfig_attributes .~ constDyn ("class" =: "form-control")
-  return $ parseInt <$> value inputElement
+    divClass "input-group-prepend" $ divClass "input-group-text" $ text label
+    inputElement <- textInput $
+      def & textInputConfig_inputType .~ "number"
+        & textInputConfig_initialValue .~ (pack . show $ defValue)
+        & textInputConfig_attributes .~ constDyn ("class" =: "form-control")
+
+    return $ parseInt <$> value inputElement
   where
     parseInt = getValue . decimal
-      where
-        getValue (Right (value, _)) = value
-        getValue _ = defValue
+    getValue (Right (value, _)) = value
+    getValue _ = defValue
 
 boardDiv :: MonadWidget t m => GameConfig -> Dynamic t GameState -> Dynamic t DisplaySettings -> m (Event t Action)
 boardDiv gameConfig dynGameState dynDisplaySettings = do
   events <- sequence [generateBoardRow x (boardWidth gameConfig) dynGameState dynDisplaySettings | x <- [0 .. (boardHeight gameConfig - 1)]]
-  let actionEvent = leftmost events
-  return actionEvent
+  return $ leftmost events
 
 generateBoardRow :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> Dynamic t DisplaySettings -> m (Event t Action)
 generateBoardRow row width gameState dynDisplaySettings = divClass "board-row" $ do
@@ -169,8 +175,8 @@ generateBoardCell :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> Dyn
 generateBoardCell row column dynGameState dynDisplaySettings= do
     let dynCellState = getCellState . cells <$> dynGameState
     let dynPlayState = playState . globalState <$> dynGameState
-    let dynClass = getDynClass <$> dynDisplaySettings <*> dynCellState <*> dynPlayState
 
+    let dynClass = getDynClass <$> dynDisplaySettings <*> dynCellState <*> dynPlayState
     let dynAttr = classToAttr <$> dynClass
 
     (cellElement, _) <- cellElement dynAttr
@@ -188,33 +194,39 @@ generateBoardCell row column dynGameState dynDisplaySettings= do
     getDynClass settings (CellState internalState visibleState) status =
         pack $ "cell" ++ clickable ++ visibility ++ label ++ flag ++ hint
       where
-        clickable | Playing <- status, not revealed, Unknown <- visibleState = " clickable"
-                  | Playing <- status, not revealed, Unsure <- visibleState = " clickable"
-                  | otherwise = ""
+        clickable
+          | Playing <- status, not revealed, Unknown <- visibleState = " clickable"
+          | Playing <- status, not revealed, Unsure <- visibleState = " clickable"
+          | otherwise = ""
 
-        visibility | revealed = " known"
-                   | otherwise = " unknown"
+        visibility
+          | revealed = " known"
+          | otherwise = " unknown"
 
-        label | revealed, Mine <- internalState = " bomb"
-              | Dead <- status, Mine <- internalState = " bomb"
-              | Win <- status, Mine <- internalState = " bomb-win"
-              | Labeled 0 _ <- visibleState = ""
-              | settings & countdownMode, Labeled _ x <- visibleState = " label-" ++ show x
-              | Labeled x _ <- visibleState = " label-" ++ show x
-              | otherwise = ""
+        label
+          | revealed, Mine <- internalState = " bomb"
+          | Dead <- status, Mine <- internalState = " bomb"
+          | Win <- status, Mine <- internalState = " bomb-win"
+          | Labeled 0 _ <- visibleState = ""
+          | settings & countdownMode, Labeled _ x <- visibleState = " label-" ++ show x
+          | Labeled x _ <- visibleState = " label-" ++ show x
+          | otherwise = ""
 
-        flag | status /= Playing, Mine <- internalState = ""
-             | Flagged <- visibleState = " flag"
-             | Unsure <- visibleState = " unsure"
-             | otherwise = ""
+        flag
+          | status /= Playing, Mine <- internalState = ""
+          | Flagged <- visibleState = " flag"
+          | Unsure <- visibleState = " unsure"
+          | otherwise = ""
 
-        hint | settings & debugMode, not revealed, Mine <- internalState = " hint hint-mine"
-             | settings & debugMode, not revealed, Safe <- internalState = " hint hint-safe"
-             | otherwise = ""
+        hint
+          | settings & debugMode, not revealed, Mine <- internalState = " hint hint-mine"
+          | settings & debugMode, not revealed, Safe <- internalState = " hint hint-safe"
+          | otherwise = ""
 
-        revealed | Known <- visibleState = True
-                 | Labeled _ _<- visibleState = True
-                 | otherwise = False
+        revealed
+          | Known <- visibleState = True
+          | Labeled _ _<- visibleState = True
+          | otherwise = False
 
 cellElement :: forall t m a. (DomBuilder t m, PostBuild t m) => Dynamic t (Map Text Text) -> m (Element EventResult (DomBuilderSpace m) t, ())
 cellElement attrs = do
@@ -222,4 +234,5 @@ cellElement attrs = do
   let cfg = (def :: ElementConfig EventResult t (DomBuilderSpace m))
         & modifyAttributes .~ fmapCheap mapKeysToAttributeName modifyAttrs
         & elementConfig_eventSpec %~ addEventSpecFlags (Proxy :: Proxy (DomBuilderSpace m)) Contextmenu (const preventDefault)
+
   element "div" cfg blank
