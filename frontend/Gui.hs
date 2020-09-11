@@ -160,9 +160,10 @@ generateBoardCell row column dynGameState dynDebugMode dynCountdownMode= do
     (cellElement, _) <- cellElement Nothing "div" dynAttr blank
 
     let revealAction = Reveal (BoardCoordinate column row) <$ domEvent Click cellElement
+    let revealAreaAction = RevealArea (BoardCoordinate column row) <$ domEvent Dblclick cellElement
     let toggleAction = ToggleFlag (BoardCoordinate column row) <$ domEvent Contextmenu cellElement
 
-    return $ leftmost [revealAction, toggleAction]
+    return $ leftmost [revealAction, revealAreaAction, toggleAction]
   where
     classToAttr classString = fromList [("class", classString)]
 

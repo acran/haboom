@@ -67,11 +67,27 @@ updateCell gameConfig action state =
 
                   | (gameStatus . getCache) state /= Playing = return ()
                   | (ToggleFlag coordinates) <- action = toggleFlagState coordinates
+                  | (RevealArea coordinates) <- action = revealAreaAction coordinates
                   | (Reveal coordinates) <- action = do
                       undoState <- gets snd
                       revealAction coordinates
                       modify $
                         \(config, GameState _ cellStates cache) -> (config, GameState (Just undoState) cellStates cache)
+
+revealAreaAction :: BoardCoordinate -> GameMonad ()
+revealAreaAction coordinates = do
+    cell <- getCell coordinates
+    revealArea cell
+  where
+    revealArea cell
+      | (CellState innerState (Labeled _ countdown)) <- cell, countdown <= 0 = do
+          undoState <- gets snd
+          neighbors <- neighborCoordinates coordinates
+          sequence $ revealAction <$> neighbors
+          modify $
+            \(config, GameState _ cellStates cache) -> (config, GameState (Just undoState) cellStates cache)
+
+      | otherwise = return ()
 
 revealAction :: BoardCoordinate -> GameMonad ()
 revealAction coordinates = do

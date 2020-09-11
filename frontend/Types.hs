@@ -78,4 +78,4 @@ countCells predicate = foldr ((+) . (fromEnum . predicate)) 0
 countInState :: (CellState -> Bool) -> CellStates -> Int
 countInState predicate cellStates = countCells predicate $ concat cellStates
 
-data Action = Reveal BoardCoordinate | ToggleFlag BoardCoordinate | Undo
+data Action = Reveal BoardCoordinate | RevealArea BoardCoordinate | ToggleFlag BoardCoordinate | Undo
