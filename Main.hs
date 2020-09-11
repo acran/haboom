@@ -12,8 +12,8 @@ main = mainWidgetWithHead headElement $ do
   rec
     evGameConfigEvent <- dyn $ flip fmap dynGameConfig $ \gameConfig -> do
       rec
-        let initialState = initializeCellStates (getBoardWidth gameConfig) (getBoardHeight gameConfig) (getNumMines gameConfig)
-        dynGameState <- foldDyn (updateCell gameConfig) initialState actionEvent
+        let initialState = initializeCellStates gameConfig
+        dynGameState <- foldDyn updateCell initialState actionEvent
 
         (gameConfigEvent, actionEvent) <- bodyElement gameConfig dynGameState
 

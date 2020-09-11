@@ -6,25 +6,32 @@ data GameConfig =
   --
   -- GameConfig @width@ @height@ @numMines@
   GameConfig {
-    getBoardWidth :: Int,
-    getBoardHeight :: Int,
-    getNumMines :: Int
+    boardWidth :: Int,
+    boardHeight :: Int,
+    totalMines :: Int
   }
 
 data BoardCoordinate = BoardCoordinate {
-  getXCoordinate :: Int,
-  getYCoordinate :: Int
+  boardColumn :: Int,
+  boardRow :: Int
 }
 
 data InternalCellState = Safe | Mine | Undefined
   deriving Show
 
-data VisibleCellState = Unknown | Known | Labeled Int Int | Flagged | Unsure
+data VisibleCellState = Unknown
+                      | Known
+                      | Flagged
+                      | Unsure
+                      | Labeled {
+                          totalLabel :: Int,
+                          countdownLabel:: Int
+                        }
   deriving Show
 
 data CellState = CellState {
-    getInternalState :: InternalCellState,
-    getVisibleState :: VisibleCellState
+    internalState :: InternalCellState,
+    visibleState :: VisibleCellState
   }
   deriving Show
 
@@ -55,18 +62,19 @@ isKnown (CellState _ (Labeled _ _)) = True
 isKnown _ = False
 
 data GameState = GameState {
-  prevState :: Maybe GameState,
-  getCells :: CellStates,
-  getCache :: StateCache
+  gameConfig :: GameConfig,
+  previousState :: Maybe GameState,
+  cells :: CellStates,
+  globalState :: GlobalGameState
 }
 
-data GameStatus = Playing | Won | Lost
+data PlayState = Playing | Win | Dead
   deriving Eq
 
-data StateCache = StateCache {
+data GlobalGameState = GlobalGameState {
     remainingMines :: Int, -- ^number of floating mines
     freeCells :: Int, -- ^number of floating safe cells
-    gameStatus :: GameStatus -- ^whether game was won/lost or is still playing
+    playState :: PlayState -- ^whether game was won/lost or is still playing
   }
 
 cellFromState :: BoardCoordinate -> CellStates -> CellState

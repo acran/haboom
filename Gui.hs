@@ -66,12 +66,12 @@ bodyElement gameConfig dynGameState = divClass "container" $ do
 
 statusText :: DomBuilder t m => GameConfig -> GameState -> m ()
 statusText gameConfig gameState = el "div" $
-    showStatus $ gameStatus $ getCache gameState
+    showStatus $ playState $ globalState gameState
   where
-    flaggedCells = foldr ((+) . (fromEnum . isFlagged)) 0 $ concat $ getCells gameState
-    showStatus Playing = text $ pack $ "Mines: " ++ show flaggedCells ++ "/" ++ show (getNumMines gameConfig)
-    showStatus Won = text $ "You win!"
-    showStatus Lost = text $ "You lose!"
+    flaggedCells = foldr ((+) . (fromEnum . isFlagged)) 0 $ concat $ cells gameState
+    showStatus Playing = text $ pack $ "Mines: " ++ show flaggedCells ++ "/" ++ show (totalMines gameConfig)
+    showStatus Win = text $ "You win!"
+    showStatus Dead = text $ "You lose!"
 
 controlsDiv :: MonadWidget t m => GameConfig -> m (Event t GameConfig)
 controlsDiv defaultConfig = do
@@ -80,9 +80,9 @@ controlsDiv defaultConfig = do
       elAttr "button" ("class" =: "btn btn-primary w-100" <> "type" =: "submit")
         $ text "New game"
 
-    widthInput <- numberInput "width" $ getBoardWidth defaultConfig
-    heightInput <- numberInput "height" $ getBoardHeight defaultConfig
-    minesInput <- numberInput "mines" $ getNumMines defaultConfig
+    widthInput <- numberInput "width" $ boardWidth defaultConfig
+    heightInput <- numberInput "height" $ boardHeight defaultConfig
+    minesInput <- numberInput "mines" $ totalMines defaultConfig
 
     return $ GameConfig <$> widthInput <*> heightInput <*> minesInput
 
@@ -117,8 +117,8 @@ undoButton gameState = do
     (buttonElement, _) <- elDynAttr' "button" dynAttr $ text "Undo"
     return $ Undo <$ domEvent Click buttonElement
   where
-    attr (GameState (Just _) _ (StateCache _ _ Playing)) = fromList [("class", "btn btn-light btn-sm mt-2")]
-    attr (GameState (Just _) _ (StateCache _ _ Lost)) = fromList [("class", "btn btn-light btn-sm mt-2")]
+    attr (GameState _ (Just _) _ (GlobalGameState _ _ Playing)) = fromList [("class", "btn btn-light btn-sm mt-2")]
+    attr (GameState _ (Just _) _ (GlobalGameState _ _ Dead)) = fromList [("class", "btn btn-light btn-sm mt-2")]
     attr _ = fromList [
         ("class", "btn btn-light btn-sm mt-2"),
         ("disabled", "disabled")
@@ -156,7 +156,7 @@ numberInput label defValue = divClass "input-group mt-2" $ do
 
 boardDiv :: MonadWidget t m => GameConfig -> Dynamic t GameState -> Dynamic t DisplaySettings -> m (Event t Action)
 boardDiv gameConfig dynGameState dynDisplaySettings = do
-  events <- sequence [generateBoardRow x (getBoardWidth gameConfig) dynGameState dynDisplaySettings | x <- [0 .. (getBoardHeight gameConfig - 1)]]
+  events <- sequence [generateBoardRow x (boardWidth gameConfig) dynGameState dynDisplaySettings | x <- [0 .. (boardHeight gameConfig - 1)]]
   let actionEvent = leftmost events
   return actionEvent
 
@@ -167,9 +167,9 @@ generateBoardRow row width gameState dynDisplaySettings = divClass "board-row" $
 
 generateBoardCell :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> Dynamic t DisplaySettings -> m (Event t Action)
 generateBoardCell row column dynGameState dynDisplaySettings= do
-    let dynCellState = getCellState . getCells <$> dynGameState
-    let dynGameStatus = gameStatus . getCache <$> dynGameState
-    let dynClass = getDynClass <$> dynDisplaySettings <*> dynCellState <*> dynGameStatus
+    let dynCellState = getCellState . cells <$> dynGameState
+    let dynPlayState = playState . globalState <$> dynGameState
+    let dynClass = getDynClass <$> dynDisplaySettings <*> dynCellState <*> dynPlayState
 
     let dynAttr = classToAttr <$> dynClass
 
@@ -196,8 +196,8 @@ generateBoardCell row column dynGameState dynDisplaySettings= do
                    | otherwise = " unknown"
 
         label | revealed, Mine <- internalState = " bomb"
-              | Lost <- status, Mine <- internalState = " bomb"
-              | Won <- status, Mine <- internalState = " bomb-win"
+              | Dead <- status, Mine <- internalState = " bomb"
+              | Win <- status, Mine <- internalState = " bomb-win"
               | Labeled 0 _ <- visibleState = ""
               | settings & countdownMode, Labeled _ x <- visibleState = " label-" ++ show x
               | Labeled x _ <- visibleState = " label-" ++ show x
