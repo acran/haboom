@@ -74,16 +74,24 @@ statusText gameConfig gameState = el "div" $
 
 controlsDiv :: MonadWidget t m => GameConfig -> m (Event t GameConfig)
 controlsDiv defaultConfig = do
-  (buttonElement, _) <- el' "div" $ elClass "button" "btn btn-primary w-100" $ text "New game"
+  (formElement, config) <- formEl' $ do
+    el "div" $
+      elAttr "button" ("class" =: "btn btn-primary w-100" <> "type" =: "submit")
+        $ text "New game"
 
-  widthInput <- numberInput "width" $ getBoardWidth defaultConfig
-  heightInput <- numberInput "height" $ getBoardHeight defaultConfig
-  minesInput <- numberInput "mines" $ getNumMines defaultConfig
+    widthInput <- numberInput "width" $ getBoardWidth defaultConfig
+    heightInput <- numberInput "height" $ getBoardHeight defaultConfig
+    minesInput <- numberInput "mines" $ getNumMines defaultConfig
 
-  let config = GameConfig <$> widthInput <*> heightInput <*> minesInput
-  let clickEvent = domEvent Click buttonElement
+    return $ GameConfig <$> widthInput <*> heightInput <*> minesInput
 
-  return $ tagPromptlyDyn config clickEvent
+  return $ tagPromptlyDyn config $ domEvent Submit formElement
+
+formEl' :: forall t m a. DomBuilder t m => m a -> m (Element EventResult (DomBuilderSpace m) t, a)
+formEl' c = do
+  let cfg = (def :: ElementConfig EventResult t (DomBuilderSpace m))
+        & elementConfig_eventSpec %~ addEventSpecFlags (Proxy :: Proxy (DomBuilderSpace m)) Submit (const preventDefault)
+  element "form" cfg c
 
 presetsDiv :: MonadWidget t m =>  m (Event t GameConfig)
 presetsDiv = do
