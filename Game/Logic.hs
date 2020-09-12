@@ -1,10 +1,10 @@
-module GameLogic where
+module Game.Logic where
 
 import Control.Lens (view, ix, over)
 import Data.Maybe (fromMaybe)
 
-import GameMonad
-import Types
+import Game.Monad
+import Game.Types
 
 newGame :: GameConfig -> GameState
 newGame config = GameState config Nothing cellStates globalState

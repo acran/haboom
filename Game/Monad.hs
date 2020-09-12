@@ -1,9 +1,9 @@
-module GameMonad where
+module Game.Monad where
 
 import Control.Lens (ix, over)
 import Data.Function ((&))
 
-import Types
+import Game.Types
 
 newtype GameMonad a = GameMonad {
   runState :: GameState -> (a, GameState)

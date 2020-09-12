@@ -1,4 +1,4 @@
-module Types where
+module Game.Types where
 
 import Data.Maybe (fromMaybe)
 

@@ -2,9 +2,9 @@
 
 import Reflex.Dom
 
-import GameLogic
-import Gui
-import Types
+import Game.Logic
+import Game.Types
+import Gui.Layout
 
 defaultConfig :: GameConfig
 defaultConfig = GameConfig 10 10 20
