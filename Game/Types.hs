@@ -24,7 +24,7 @@ data BoardCoordinate = BoardCoordinate {
 }
 
 data InternalCellState = Safe | Mine | Undefined
-  deriving (Eq, Show)
+  deriving Eq
 
 data VisibleCellState = Unknown
                       | Known
@@ -34,13 +34,13 @@ data VisibleCellState = Unknown
                           totalLabel :: Int,
                           countdownLabel:: Int
                         }
-  deriving (Eq, Show)
+  deriving Eq
 
 data CellState = CellState {
     internalCellState :: InternalCellState,
     visibleCellState :: VisibleCellState
   }
-  deriving (Eq, Show)
+  deriving Eq
 
 instance Semigroup CellState where
   _ <> b = b
