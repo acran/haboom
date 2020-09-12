@@ -1,3 +1,4 @@
+{-# LANGUAGE MonoLocalBinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Gui.Controls where
