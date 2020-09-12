@@ -18,9 +18,9 @@ getCellFixed safe coordinates = do
     cell <- getCell coordinates
     globalState <- getGlobalState
 
-    fixCell globalState coordinates cell
+    fixCell globalState cell
   where
-    fixCell globalState coordinates cell
+    fixCell globalState cell
         | (CellState Undefined visibleState) <- cell = do
             let fixedCell = CellState fixedInternalState visibleState
             setCell coordinates fixedCell
@@ -37,21 +37,24 @@ getCellFixed safe coordinates = do
 
 execAction :: Action -> GameState -> GameState
 execAction action state
-  | Undo <- action, (playState . globalState) state /= Win = undo state
-  | (playState . globalState) state /= Playing = state
-  | (ToggleFlag coordinates) <- action = execState (toggleFlagState coordinates) state
-  | (RevealArea coordinates) <- action = execStateWithUndo (revealArea coordinates) state
-  | (Reveal coordinates) <- action = execStateWithUndo (reveal False coordinates) state
+    | Undo <- action, playState /= Win = undo state
+    | playState /= Playing = state
+    | (ToggleFlag coordinates) <- action = execState (toggleFlagState coordinates) state
+    | (RevealArea coordinates) <- action = execStateWithUndo (revealArea coordinates) state
+    | (Reveal coordinates) <- action = execStateWithUndo (reveal False coordinates) state
+    | otherwise = error "Bug: unkwon action"
+  where
+    playState = (globalPlayState . globalGameState) state
 
 revealArea :: BoardCoordinate -> GameMonad ()
 revealArea coordinates = do
     cell <- getCell coordinates
-    revealArea cell
+    revealArea' cell
   where
-    revealArea cell
+    revealArea' cell
       | (CellState _ (Labeled _ countdown)) <- cell, countdown <= 0 = do
           neighbors <- neighborCoordinates coordinates
-          sequence $ reveal False <$> neighbors
+          _ <- sequence $ reveal False <$> neighbors
           return ()
 
       | otherwise = return ()
@@ -59,9 +62,9 @@ revealArea coordinates = do
 reveal :: Bool -> BoardCoordinate -> GameMonad ()
 reveal force coordinates = do
     cell <- getCellFixed True coordinates
-    revealCell force cell coordinates
+    reveal' cell
   where
-    revealCell force cell coordinates
+    reveal' cell
       | isKnown cell || (isFlagged cell && not force) = return ()
       | otherwise = do
           neighbors <- fmap (getCellFixed False) <$> neighborCoordinates coordinates >>= sequence
@@ -71,16 +74,17 @@ reveal force coordinates = do
           let newCell = revealedCell cell mines flags
           setCell coordinates newCell
 
-          maybeRevealNeighbors newCell coordinates
-          maybeFixAll . playState <$> getGlobalState
+          _ <- maybeRevealNeighbors newCell
+          _ <- maybeFixAll . globalPlayState <$> getGlobalState
 
           return ()
 
     revealedCell cell mines flags
       | isMine cell = CellState Mine Known
       | isSafe cell = CellState Safe (Labeled mines (mines - flags))
+      | otherwise = error "Bug: invalid state trying to reveal cell"
 
-    maybeRevealNeighbors cell coordinates
+    maybeRevealNeighbors cell
       | (CellState Safe (Labeled 0 _)) <- cell = do
         neighbors <- neighborCoordinates coordinates
         mapM (reveal True) neighbors
@@ -115,21 +119,20 @@ toggleFlagState :: BoardCoordinate -> GameMonad ()
 toggleFlagState coordinates = do
     cell <- toggleCell <$> getCell coordinates
     setCell coordinates cell
-    fmap updateCountdownLabel <$> neighborCoordinates coordinates >>= sequence
+    _ <- fmap updateCountdownLabel <$> neighborCoordinates coordinates >>= sequence
 
     return ()
   where
     toggleCell cell
-        | currentState == Unknown = cell {visibleState = Flagged}
-        | currentState == Flagged = cell {visibleState = Unsure}
-        | currentState == Unsure = cell {visibleState = Unknown}
+        | currentState == Unknown = cell {visibleCellState = Flagged}
+        | currentState == Flagged = cell {visibleCellState = Unsure}
+        | currentState == Unsure = cell {visibleCellState = Unknown}
         | otherwise = cell
       where
-        currentState = visibleState cell
+        currentState = visibleCellState cell
 
 updateCountdownLabel :: BoardCoordinate -> GameMonad ()
 updateCountdownLabel coordinates = do
-    neighbors <- fmap getCell <$> neighborCoordinates coordinates >>= sequence
     flags <- (fmap getCell) <$> neighborCoordinates coordinates >>= sequence >>= return . countCells isFlagged
     cell <- getCell coordinates
     setCell coordinates $ updatedCounter cell flags

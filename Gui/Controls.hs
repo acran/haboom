@@ -44,11 +44,13 @@ undoButton gameState = do
     return $ Undo <$ domEvent Click buttonElement
   where
     attr state
-      | isJust (previousState state) && Win /= playState (globalState state) = fromList [("class", "btn btn-light btn-sm mt-2")]
-      | otherwise  = fromList [
-        ("class", "btn btn-light btn-sm mt-2"),
-        ("disabled", "disabled")
-      ]
+        | isJust (previousState state) && Win /= playState = fromList [("class", "btn btn-light btn-sm mt-2")]
+        | otherwise  = fromList [
+          ("class", "btn btn-light btn-sm mt-2"),
+          ("disabled", "disabled")
+        ]
+      where
+        playState = globalPlayState $ globalGameState state
 
 settingsDiv :: MonadWidget t m => m (Dynamic t DisplaySettings)
 settingsDiv = do

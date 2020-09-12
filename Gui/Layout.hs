@@ -28,7 +28,7 @@ bodyElement config dynGameState = divClass "container" $ do
         actionEvent <- divClass "board" $
           boardDiv (boardHeight config) (boardWidth config) dynGameState dynDisplaySettings
 
-        el "div" $
+        _ <- el' "div" $
           dyn $ statusText config <$> dynGameState
 
         return actionEvent

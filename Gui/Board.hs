@@ -13,7 +13,7 @@ import Gui.Types
 
 statusText :: DomBuilder t m => GameConfig -> GameState -> m ()
 statusText config state = el "div" $
-    showStatus $ state & globalState & playState
+    showStatus $ state & globalGameState & globalPlayState
   where
     flags = countInState isFlagged $ cells state
     mines = config & totalMines
@@ -38,7 +38,7 @@ generateBoardRow gameState dynDisplaySettings width row = divClass "board-row" $
 generateBoardCell :: MonadWidget t m => Dynamic t GameState -> Dynamic t DisplaySettings -> Int -> Int -> m (Event t Action)
 generateBoardCell dynState dynDisplaySettings row column = do
     let dynCellState = cellFromState (BoardCoordinate column row) . cells <$> dynState
-    let dynPlayState = playState . globalState <$> dynState
+    let dynPlayState = globalPlayState . globalGameState <$> dynState
     let dynAttr = classAttr <$> dynDisplaySettings <*> dynCellState <*> dynPlayState
 
     (cellElement, _) <- elCell' dynAttr

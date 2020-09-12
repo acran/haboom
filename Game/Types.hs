@@ -37,8 +37,8 @@ data VisibleCellState = Unknown
   deriving (Eq, Show)
 
 data CellState = CellState {
-    internalState :: InternalCellState,
-    visibleState :: VisibleCellState
+    internalCellState :: InternalCellState,
+    visibleCellState :: VisibleCellState
   }
   deriving (Eq, Show)
 
@@ -75,7 +75,7 @@ data GameState = GameState {
   gameConfig :: GameConfig,
   previousState :: Maybe GameState,
   cells :: CellStates,
-  globalState :: GlobalGameState
+  globalGameState :: GlobalGameState
 }
   deriving Eq
 
@@ -88,7 +88,7 @@ data PlayState = Playing | Win | Dead
 data GlobalGameState = GlobalGameState {
     remainingMines :: Int, -- ^number of floating mines
     freeCells :: Int, -- ^number of floating safe cells
-    playState :: PlayState -- ^whether game was won/lost or is still playing
+    globalPlayState :: PlayState -- ^whether game was won/lost or is still playing
   }
   deriving Eq
 

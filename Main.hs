@@ -12,12 +12,12 @@ defaultConfig = GameConfig 10 10 20
 main :: IO ()
 main = mainWidgetWithHead headElement $ do
   rec
-    nestedGameConfigEvent <- dyn $ flip fmap dynGameConfig $ \gameConfig -> do
+    nestedGameConfigEvent <- dyn $ flip fmap dynGameConfig $ \config -> do
       rec
-        let initialState = newGame gameConfig
+        let initialState = newGame config
         dynGameState <- foldDyn execAction initialState actionEvent
 
-        (gameConfigEvent, actionEvent) <- bodyElement gameConfig dynGameState
+        (gameConfigEvent, actionEvent) <- bodyElement config dynGameState
 
       return gameConfigEvent
 

@@ -40,7 +40,7 @@ getConfig :: GameMonad GameConfig
 getConfig = gameConfig <$> get'
 
 getGlobalState :: GameMonad GlobalGameState
-getGlobalState = globalState <$> get'
+getGlobalState = globalGameState <$> get'
 
 getCells :: GameMonad CellStates
 getCells = cells <$> get'
@@ -49,28 +49,28 @@ getCell :: BoardCoordinate -> GameMonad CellState
 getCell coordinates = cellFromState coordinates <$> getCells
 
 setCell :: BoardCoordinate -> CellState -> GameMonad ()
-setCell (BoardCoordinate column row) cell = do
+setCell (BoardCoordinate column row) updatedCell = do
     state  <- get'
-    let updatedCells = over (ix row) (over (ix column) $ const cell) $ state & cells
+    let updatedCells = over (ix row) (over (ix column) $ const updatedCell) $ state & cells
     put $ state {
         cells = updatedCells,
-        globalState = updateGlobalState updatedCells $ gameConfig state
+        globalGameState = updateGlobalState updatedCells $ gameConfig state
       }
   where
     put x = GameMonad $ \_ -> ((), x)
     updateGlobalState cellStates config =
       let
-        fixedMines = countInState isMine cellStates
-        remainingMines = totalMines config - fixedMines
-        remainingCells = countInState isUndefined cellStates
-        freeCells = remainingCells - remainingMines
+        numFixedMines = countInState isMine cellStates
+        numRemainingMines = totalMines config - numFixedMines
+        numRemainingCells = countInState isUndefined cellStates
+        numFreeCells = numRemainingCells - numRemainingMines
 
         isRevealedMine cell = isMine cell && isKnown cell
-        totalCells =  boardHeight config * boardWidth config
-        revealedCells = countInState isKnown cellStates
+        numTotalCells =  boardHeight config * boardWidth config
+        numRevealedCells = countInState isKnown cellStates
         playState
           | any isRevealedMine $ concat cellStates = Dead
-          | revealedCells + totalMines config == totalCells = Win
+          | numRevealedCells + totalMines config == numTotalCells = Win
           | otherwise = Playing
 
-      in GlobalGameState remainingMines freeCells playState
+      in GlobalGameState numRemainingMines numFreeCells playState
