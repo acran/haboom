@@ -1,8 +1,5 @@
 module Game.Logic where
 
-import Control.Lens (view, ix, over)
-import Data.Maybe (fromMaybe)
-
 import Game.Monad
 import Game.Types
 
