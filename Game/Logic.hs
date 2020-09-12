@@ -13,8 +13,7 @@ newGame config = GameState config Nothing cellStates globalState
     numCells = totalCells config
     globalState = GlobalGameState numMines (numCells - numMines) Playing
 
-    freshCell = CellState Undefined Unknown
-    row = flip map [0 .. boardWidth config - 1] $ const freshCell
+    row = flip map [0 .. boardWidth config - 1] $ const mempty
     cellStates = flip map [0 .. boardHeight config - 1] $ const row
 
 getCellFixed :: Bool -> BoardCoordinate -> GameMonad CellState

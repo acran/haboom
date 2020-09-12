@@ -1,5 +1,6 @@
 module Game.Types where
 
+import Control.Lens (ix, view)
 import Data.Maybe (fromMaybe)
 
 -- | Board configuration for a new game
@@ -41,8 +42,11 @@ data CellState = CellState {
   }
   deriving (Eq, Show)
 
-instance Semigroup CellState
-instance Monoid CellState
+instance Semigroup CellState where
+  _ <> b = b
+
+instance Monoid CellState where
+  mempty = CellState Undefined Unknown
 
 type CellStates = [[CellState]]
 
@@ -89,7 +93,7 @@ data GlobalGameState = GlobalGameState {
   deriving Eq
 
 cellFromState :: BoardCoordinate -> CellStates -> CellState
-cellFromState (BoardCoordinate column row) cellStates = cellStates !! row !! column
+cellFromState (BoardCoordinate column row) cellStates = view (ix column) $ view (ix row) cellStates
 
 countCells :: (CellState -> Bool) -> [CellState] -> Int
 countCells predicate = foldr ((+) . (fromEnum . predicate)) 0
