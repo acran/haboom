@@ -19,88 +19,85 @@ newGame config = GameState config Nothing cellStates globalState
 
 getCellFixed :: Bool -> BoardCoordinate -> GameMonad CellState
 getCellFixed safe coordinates = do
-    state <- getCells
+    cell <- getCell coordinates
     globalState <- getGlobalState
-    let cell = cellFromState coordinates state
 
     fixCell globalState coordinates cell
   where
-    fixCell globalState coordinates (CellState Undefined visibleState) = do
-        let fixedCell = CellState internalState visibleState
-        setCell coordinates fixedCell
-        return fixedCell
+    fixCell globalState coordinates cell
+        | (CellState Undefined visibleState) <- cell = do
+            let fixedCell = CellState fixedInternalState visibleState
+            setCell coordinates fixedCell
+            return fixedCell
+        | otherwise = return cell
       where
-        internalState
-          | remainingMines globalState == 0 = Safe
-          | freeCells globalState == 0 = Mine
+        fixedInternalState
+          | 0 == remainingMines globalState = Safe
+          | 0 == freeCells globalState = Mine
           | safe = Safe
           | otherwise = case freeCells globalState `mod` remainingMines globalState of
               1 -> Mine
               _ -> Safe
 
-    fixCell _ _ cell = return cell
-
-updateCell :: Action -> GameState -> GameState
-updateCell action state
+execAction :: Action -> GameState -> GameState
+execAction action state
   | Undo <- action, (playState . globalState) state /= Win = undo state
   | (playState . globalState) state /= Playing = state
   | (ToggleFlag coordinates) <- action = execState (toggleFlagState coordinates) state
-  | (RevealArea coordinates) <- action = execStateWithUndo (revealAreaAction coordinates) state
-  | (Reveal coordinates) <- action = execStateWithUndo (revealAction False coordinates) state
+  | (RevealArea coordinates) <- action = execStateWithUndo (revealArea coordinates) state
+  | (Reveal coordinates) <- action = execStateWithUndo (reveal False coordinates) state
 
-revealAreaAction :: BoardCoordinate -> GameMonad ()
-revealAreaAction coordinates = do
+revealArea :: BoardCoordinate -> GameMonad ()
+revealArea coordinates = do
     cell <- getCell coordinates
     revealArea cell
   where
     revealArea cell
-      | (CellState innerState (Labeled _ countdown)) <- cell, countdown <= 0 = do
+      | (CellState _ (Labeled _ countdown)) <- cell, countdown <= 0 = do
           neighbors <- neighborCoordinates coordinates
-          sequence $ revealAction False <$> neighbors
+          sequence $ reveal False <$> neighbors
           return ()
 
       | otherwise = return ()
 
-revealAction :: Bool -> BoardCoordinate -> GameMonad ()
-revealAction force coordinates = do
-  cell <- getCellFixed True coordinates
-  revealCell force cell coordinates
-  return ()
+reveal :: Bool -> BoardCoordinate -> GameMonad ()
+reveal force coordinates = do
+    cell <- getCellFixed True coordinates
+    revealCell force cell coordinates
+  where
+    revealCell force cell coordinates
+      | isKnown cell || (isFlagged cell && not force) = return ()
+      | otherwise = do
+          neighbors <- fmap (getCellFixed False) <$> neighborCoordinates coordinates >>= sequence
+          let mines = countCells isMine neighbors
+          let flags = countCells isFlagged neighbors
 
-revealCell :: Bool -> CellState -> BoardCoordinate -> GameMonad ()
-revealCell force cell coordinates
-  | isKnown cell || (isFlagged cell && not force) = return ()
-  | otherwise = do
-      neighbors <- fmap (getCellFixed False) <$> neighborCoordinates coordinates >>= sequence
-      let mines = countCells isMine neighbors
-      let flags = countCells isFlagged neighbors
+          let newCell = revealedCell cell mines flags
+          setCell coordinates newCell
 
-      let newCell = revealedCell mines flags
-      setCell coordinates newCell
+          maybeRevealNeighbors newCell coordinates
+          maybeFixAll . playState <$> getGlobalState
 
-      maybeRevealNeighbors newCell coordinates
-      maybeFixAll . playState <$> getGlobalState
+          return ()
 
-      return ()
-    where
-      revealedCell numMines numFlags
-        | isMine cell = CellState Mine Known
-        | isSafe cell = CellState Safe (Labeled numMines (numMines - numFlags))
+    revealedCell cell mines flags
+      | isMine cell = CellState Mine Known
+      | isSafe cell = CellState Safe (Labeled mines (mines - flags))
 
-      maybeRevealNeighbors (CellState Safe (Labeled 0 _)) coordinates = do
+    maybeRevealNeighbors cell coordinates
+      | (CellState Safe (Labeled 0 _)) <- cell = do
         neighbors <- neighborCoordinates coordinates
-        mapM (revealAction True) neighbors
+        mapM (reveal True) neighbors
+      | otherwise = return []
 
-      maybeRevealNeighbors _ coordinates = return []
-
-      maybeFixAll Playing = return []
-      maybeFixAll _ = do
-        config <- getConfig
-        sequence [
-            getCellFixed False (BoardCoordinate column row)
-            | column <- [0..boardWidth config - 1],
-              row <- [0..boardHeight config - 1]
-          ]
+    maybeFixAll Playing = return []
+    maybeFixAll _ = do
+      config <- getConfig
+      sequence [
+          getCellFixed False (BoardCoordinate column row)
+          | column <- [0..boardWidth config - 1],
+            row <- [0..boardHeight config - 1]
+        ]
 
 neighborCoordinates :: BoardCoordinate -> GameMonad [BoardCoordinate]
 neighborCoordinates (BoardCoordinate x y) = do
@@ -120,8 +117,8 @@ neighborCoordinates (BoardCoordinate x y) = do
 
 toggleFlagState :: BoardCoordinate -> GameMonad ()
 toggleFlagState coordinates = do
-    toggledCell <- toggleCell <$> getCell coordinates
-    setCell coordinates toggledCell
+    cell <- toggleCell <$> getCell coordinates
+    setCell coordinates cell
     fmap updateCountdownLabel <$> neighborCoordinates coordinates >>= sequence
 
     return ()
@@ -143,5 +140,5 @@ updateCountdownLabel coordinates = do
 
     return ()
   where
-    updatedCounter (CellState innerState (Labeled mines _)) flags = (CellState innerState (Labeled mines (mines-flags)))
+    updatedCounter (CellState innerState (Labeled mines _)) flags = CellState innerState (Labeled mines (mines - flags))
     updatedCounter cell _ = cell

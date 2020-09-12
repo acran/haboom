@@ -15,7 +15,7 @@ main = mainWidgetWithHead headElement $ do
     nestedGameConfigEvent <- dyn $ flip fmap dynGameConfig $ \gameConfig -> do
       rec
         let initialState = newGame gameConfig
-        dynGameState <- foldDyn updateCell initialState actionEvent
+        dynGameState <- foldDyn execAction initialState actionEvent
 
         (gameConfigEvent, actionEvent) <- bodyElement gameConfig dynGameState
 
