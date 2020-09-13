@@ -24,6 +24,10 @@ styleSheet uri = elAttr "link" styleSheetAttr blank
         ("href",  uri)
       ]
 
+-- | create a <a> tag with href
+linkEl :: DomBuilder t m => Text -> m a -> m a
+linkEl href children = elAttr "a" ("href" =: href) children
+
 -- | create new <form> tag with 'preventDefault' for the submit event
 formEl' :: forall t m a. DomBuilder t m => m a -> m (Element EventResult (DomBuilderSpace m) t, a)
 formEl' children = do

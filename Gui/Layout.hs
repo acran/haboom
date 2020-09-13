@@ -50,4 +50,26 @@ bodyElement config dynGameState = divClass "container" $ do
 
       return (leftmost [gameConfigEvent, presetEvent], dynDisplaySettings, undoEvent)
 
+  el "h2" $ text "What is this?"
+  el "p" $
+    text "This is a procedurally generated Minesweeper game written in Haskell:"
+  el "ul" $ do
+    el "li" $ text "The mines are not placed at the beginning, but determined as you play."
+    el "li" $ text "Only when revealing a cell the state for it and the surrounding cells is fixed."
+    el "li" $ text "If you open a cell which state is not fixed yet it will be safe..."
+    el "li" $ text "...unless there are no other un-fixed cells left to place the remaining floating mines"
+
+  el "h2" $ text "See also"
+  el "p" $ do
+    text "This project is heavily based on and uses assets from:"
+    el "ul" $
+      el "li" $ do
+        linkEl "https://github.com/pwmarcz/kaboom" $
+          el "strong" $ text "Kaboom"
+        text " - a "
+        el "strong" $ text "cruel, but fair"
+        text " Minesweeper game by Paweł Marczewski ("
+        linkEl "https://pwmarcz.pl/" $ text "pwmarcz.pl"
+        text $ ")"
+
   return (gameConfigEvent, leftmost [actionEvent, undoEvent])
