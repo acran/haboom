@@ -37,7 +37,7 @@ presetsDiv = do
     events <- sequence $ presetButton <$> presets
     return $ leftmost events
 
-undoButton :: MonadWidget t m => Dynamic t GameState -> m (Event t Action)
+undoButton :: MonadWidget t m => Dynamic t GameState -> m (Event t GameAction)
 undoButton gameState = do
     let dynAttr = attr <$> gameState
     (buttonElement, _) <- elDynAttr' "button" dynAttr $ text "Undo"

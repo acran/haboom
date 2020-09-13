@@ -21,21 +21,21 @@ statusText config state = el "div" $
     showStatus Win = text $ "You win!"
     showStatus Dead = text $ "You lose!"
 
-boardDiv :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> Dynamic t DisplaySettings -> m (Event t Action)
+boardDiv :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> Dynamic t DisplaySettings -> m (Event t GameAction)
 boardDiv rows columns dynState dynDisplaySettings = do
     events <- sequence $ generateRow columns <$> [0 .. rows - 1]
     return $ leftmost events
   where
     generateRow = generateBoardRow dynState dynDisplaySettings
 
-generateBoardRow :: MonadWidget t m => Dynamic t GameState -> Dynamic t DisplaySettings -> Int -> Int -> m (Event t Action)
+generateBoardRow :: MonadWidget t m => Dynamic t GameState -> Dynamic t DisplaySettings -> Int -> Int -> m (Event t GameAction)
 generateBoardRow gameState dynDisplaySettings width row = divClass "board-row" $ do
     events <- sequence $ generateCell row <$> [0 .. width - 1]
     return $ leftmost events
   where
     generateCell = generateBoardCell gameState dynDisplaySettings
 
-generateBoardCell :: MonadWidget t m => Dynamic t GameState -> Dynamic t DisplaySettings -> Int -> Int -> m (Event t Action)
+generateBoardCell :: MonadWidget t m => Dynamic t GameState -> Dynamic t DisplaySettings -> Int -> Int -> m (Event t GameAction)
 generateBoardCell dynState dynDisplaySettings row column = do
     let dynCellState = cellFromState (BoardCoordinate column row) . cells <$> dynState
     let dynPlayState = globalPlayState . globalGameState <$> dynState

@@ -18,7 +18,7 @@ headElement = do
   styleSheet "css/bootstrap.min.css"
   styleSheet "css/style.css"
 
-bodyElement :: MonadWidget t m => GameConfig -> Dynamic t GameState -> m (Event t GameConfig, Event t Action)
+bodyElement :: MonadWidget t m => GameConfig -> Dynamic t GameState -> m (Event t GameConfig, Event t GameAction)
 bodyElement config dynGameState = divClass "container" $ do
   el "h1" $ text "Haboom"
 

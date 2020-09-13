@@ -3,6 +3,9 @@ module Game.Logic where
 import Game.Monad
 import Game.Types
 
+-- | create a new 'GameState' for given 'GameConfig'
+--
+--   this will initialize 'CellStates' with the respective dimensions
 newGame :: GameConfig -> GameState
 newGame config = GameState config Nothing cellStates globalState
   where
@@ -13,7 +16,14 @@ newGame config = GameState config Nothing cellStates globalState
     row = flip map [0 .. boardWidth config - 1] $ const mempty
     cellStates = flip map [0 .. boardHeight config - 1] $ const row
 
-getCellFixed :: Bool -> BoardCoordinate -> GameMonad CellState
+-- | get a cell with fixed internal state
+--
+--   this will first update the requested cell if necessary (i.e. cell is 'Undefined')
+--   assigning the cell to contain a mine or not
+getCellFixed ::
+     Bool -- ^always return a safe cell if possible (effectively allow guessing anywhere)
+  -> BoardCoordinate -- ^coordinate of cell to reveal
+  -> GameMonad CellState
 getCellFixed safe coordinates = do
     cell <- getCell coordinates
     globalState <- getGlobalState
@@ -35,7 +45,8 @@ getCellFixed safe coordinates = do
               1 -> Mine
               _ -> Safe
 
-execAction :: Action -> GameState -> GameState
+-- | evaluate a single move of the player and return the new 'GameState'
+execAction :: GameAction -> GameState -> GameState
 execAction action state
     | Undo <- action, playState /= Win = undo state
     | playState /= Playing = state
@@ -46,6 +57,7 @@ execAction action state
   where
     playState = (globalPlayState . globalGameState) state
 
+-- | reveal all adjacent safe cells - according to set flags
 revealArea :: BoardCoordinate -> GameMonad ()
 revealArea coordinates = do
     cell <- getCell coordinates
@@ -59,7 +71,11 @@ revealArea coordinates = do
 
       | otherwise = return ()
 
-reveal :: Bool -> BoardCoordinate -> GameMonad ()
+-- | reveal a single cell
+reveal ::
+     Bool -- ^force reveal of flagged cells if safe (recursively used when no adjacent mines)
+  -> BoardCoordinate -- ^coordinates to reveal
+  -> GameMonad ()
 reveal force coordinates = do
     cell <- getCellFixed True coordinates
     reveal' cell
@@ -84,12 +100,13 @@ reveal force coordinates = do
       | isSafe cell = CellState Safe (Labeled mines (mines - flags))
       | otherwise = error "Bug: invalid state trying to reveal cell"
 
-    maybeRevealNeighbors cell
-      | (CellState Safe (Labeled 0 _)) <- cell = do
+    -- | when cell has no adjacent mines reveal all neighbors too
+    maybeRevealNeighbors (CellState Safe (Labeled 0 _)) = do
         neighbors <- neighborCoordinates coordinates
         mapM (reveal True) neighbors
-      | otherwise = return []
+    maybeRevealNeighbors _ = return []
 
+    -- | when game ends fix all (remaining) cells to place and show mines at a fixed position
     maybeFixAll Playing = return []
     maybeFixAll _ = do
       config <- getConfig
@@ -99,6 +116,7 @@ reveal force coordinates = do
             row <- [0..boardHeight config - 1]
         ]
 
+-- | get coordinates of adjacent cells
 neighborCoordinates :: BoardCoordinate -> GameMonad [BoardCoordinate]
 neighborCoordinates (BoardCoordinate x y) = do
   config <- getConfig
@@ -115,6 +133,7 @@ neighborCoordinates (BoardCoordinate x y) = do
       ny < boardHeight config
     ]
 
+-- | cycle through 'Flagged' / 'Unsure' / 'Unknown' states
 toggleFlagState :: BoardCoordinate -> GameMonad ()
 toggleFlagState coordinates = do
     cell <- toggleCell <$> getCell coordinates
@@ -131,6 +150,7 @@ toggleFlagState coordinates = do
       where
         currentState = visibleCellState cell
 
+-- | updated the countdown label based on adjacent flags
 updateCountdownLabel :: BoardCoordinate -> GameMonad ()
 updateCountdownLabel coordinates = do
     flags <- (fmap getCell) <$> neighborCoordinates coordinates >>= sequence >>= return . countCells isFlagged
