@@ -3,6 +3,39 @@ module Game.Types where
 import Control.Lens (ix, view)
 import Data.Maybe (fromMaybe)
 
+-- | position of a cell on the board
+data BoardCoordinate =
+  -- | BoardCoordinate @column@ @row@
+  BoardCoordinate {
+    boardColumn :: Int, -- ^column (x-axis)
+    boardRow    :: Int  -- ^row (y-axis)
+  }
+
+-- | a move in the game played by the player
+data GameAction =
+    Reveal     BoardCoordinate -- ^reveal a single cell
+  | RevealArea BoardCoordinate -- ^reveal all adjacent safe cells if possible
+  | ToggleFlag BoardCoordinate -- ^toggle flag/unsure on cell
+  | Undo                       -- ^undo last 'Reveal' / 'RevealArea' action
+
+-- | represents the complete and consistent state of the game
+--   in a given point in time
+data GameState =
+    -- | GameState @config@ @Maybe previousState@ @cellStates@ @globalGameState@
+    GameState {
+      gameConfig      :: GameConfig,      -- ^board configuration for this game
+      previousState   :: Maybe GameState, -- ^previous game state used for undo operations
+      cells           :: CellStates,      -- ^state of all cells on the board
+      globalGameState :: GlobalGameState  -- ^some global states calculated from the states of __all__ cells
+    }
+  deriving Eq
+
+-- | return the previous game state to undo last reveal
+--
+--   if no previous state is available, the same state is returned
+undo :: GameState -> GameState
+undo state = fromMaybe state $ previousState state
+
 -- | Board configuration for a new game
 data GameConfig =
     -- | GameConfig @width@ @height@ @numMines@
@@ -17,13 +50,22 @@ data GameConfig =
 totalCells :: GameConfig -> Int
 totalCells config = boardWidth config * boardHeight config
 
--- | position of a cell on the board
-data BoardCoordinate =
-  -- | BoardCoordinate @column@ @row@
-  BoardCoordinate {
-    boardColumn :: Int, -- ^column (x-axis)
-    boardRow    :: Int  -- ^row (y-axis)
-  }
+-- | current win/lose state of the game
+data PlayState =
+      Playing -- ^game is still running
+    | Win     -- ^the player won
+    | Dead    -- ^the player lost
+  deriving Eq
+
+-- | global states of the game calculated from all cell states
+data GlobalGameState =
+    -- | GlobalGameState @remainingMines@ @freeCells@ @playState@
+    GlobalGameState {
+      remainingMines  :: Int,      -- ^number of floating mines
+      freeCells       :: Int,      -- ^number of floating safe cells
+      globalPlayState :: PlayState -- ^whether game was won/lost or is still playing
+    }
+  deriving Eq
 
 -- | internal (non-visible) state of a cell
 data InternalCellState =
@@ -90,41 +132,6 @@ isKnown (CellState _ Known) = True
 isKnown (CellState _ (Labeled _ _)) = True
 isKnown _ = False
 
--- | represents the complete and consistent state of the game
---   in a given point in time
-data GameState =
-    -- | GameState @config@ @Maybe previousState@ @cellStates@ @globalGameState@
-    GameState {
-      gameConfig      :: GameConfig,      -- ^board configuration for this game
-      previousState   :: Maybe GameState, -- ^previous game state used for undo operations
-      cells           :: CellStates,      -- ^state of all cells on the board
-      globalGameState :: GlobalGameState  -- ^some global states calculated from the states of __all__ cells
-    }
-  deriving Eq
-
--- | return the previous game state to undo last reveal
---
---   if no previous state is available, the same state is returned
-undo :: GameState -> GameState
-undo state = fromMaybe state $ previousState state
-
--- | current win/lose state of the game
-data PlayState =
-      Playing -- ^game is still running
-    | Win     -- ^the player won
-    | Dead    -- ^the player lost
-  deriving Eq
-
--- | global states of the game calculated from all cell states
-data GlobalGameState =
-    -- | GlobalGameState @remainingMines@ @freeCells@ @playState@
-    GlobalGameState {
-      remainingMines  :: Int,      -- ^number of floating mines
-      freeCells       :: Int,      -- ^number of floating safe cells
-      globalPlayState :: PlayState -- ^whether game was won/lost or is still playing
-    }
-  deriving Eq
-
 -- | get cell on specific coordinate from @cellStates@
 cellFromState :: BoardCoordinate -> CellStates -> CellState
 cellFromState (BoardCoordinate column row) cellStates = view (ix column) $ view (ix row) cellStates
@@ -136,10 +143,3 @@ countCells predicate = length . filter predicate
 -- | count cells in @cellStates@ matching the @predicate@
 countInState :: (CellState -> Bool) -> CellStates -> Int
 countInState predicate cellStates = countCells predicate $ concat cellStates
-
--- | a move in the game played by the player
-data GameAction =
-    Reveal     BoardCoordinate -- ^reveal a single cell
-  | RevealArea BoardCoordinate -- ^reveal all adjacent safe cells if possible
-  | ToggleFlag BoardCoordinate -- ^toggle flag/unsure on cell
-  | Undo                       -- ^undo last 'Reveal' / 'RevealArea' action
