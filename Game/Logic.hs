@@ -91,7 +91,9 @@ reveal force coordinates = do
           setCell coordinates newCell
 
           _ <- maybeRevealNeighbors newCell
-          _ <- maybeFixAll . globalPlayState <$> getGlobalState
+
+          playState <- globalPlayState <$> getGlobalState
+          _ <- maybeFixAll playState
 
           return ()
 
