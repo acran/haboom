@@ -1,0 +1,10 @@
+.git*
+frontend/Main
+docs/
+*.dyn_hi
+*.dyn_o
+*.hi
+*.js_hi
+*.js_o
+*.jsexe/
+*.o
