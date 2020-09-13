@@ -19,9 +19,9 @@ styleSheet :: DomBuilder t m => Text -> m ()
 styleSheet uri = elAttr "link" styleSheetAttr blank
   where
     styleSheetAttr = fromList [
-        ("rel", "stylesheet"),
+        ("rel",  "stylesheet"),
         ("type", "text/css"),
-        ("href", uri)
+        ("href",  uri)
       ]
 
 -- | create new <form> tag with 'preventDefault' for the submit event
@@ -35,6 +35,7 @@ formEl' children = do
 elCell' :: forall t m. (DomBuilder t m, PostBuild t m) => Dynamic t (Map Text Text) -> m (Element EventResult (DomBuilderSpace m) t, ())
 elCell' attrs = do
   modifyAttrs <- dynamicAttributesToModifyAttributes attrs
+
   let cfg = (def :: ElementConfig EventResult t (DomBuilderSpace m))
         & modifyAttributes .~ fmapCheap mapKeysToAttributeName modifyAttrs
         & elementConfig_eventSpec %~ addEventSpecFlags (Proxy :: Proxy (DomBuilderSpace m)) Contextmenu (const preventDefault)
@@ -55,12 +56,13 @@ numberInput label initialValue = divClass "input-group mt-2" $ do
         text label
 
     input <- textInput $
-      def & textInputConfig_inputType .~ "number"
-        & textInputConfig_initialValue .~ (pack . show $ initialValue)
-        & textInputConfig_attributes .~ constDyn ("class" =: "form-control")
+      def & textInputConfig_inputType    .~ "number"
+          & textInputConfig_initialValue .~ (pack . show $ initialValue)
+          & textInputConfig_attributes   .~ constDyn ("class" =: "form-control")
 
     return $ parseInt <$> value input
   where
     parseInt = getValue . decimal
+
     getValue (Right (textValue, _)) = textValue
-    getValue _ = initialValue
+    getValue _                      = initialValue

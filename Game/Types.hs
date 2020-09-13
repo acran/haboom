@@ -5,12 +5,12 @@ import Data.Maybe (fromMaybe)
 
 -- | Board configuration for a new game
 data GameConfig =
-  -- | GameConfig @width@ @height@ @numMines@
-  GameConfig {
-    boardWidth :: Int, -- ^number of columns on the board
-    boardHeight :: Int, -- ^number of rows on the board
-    totalMines :: Int -- ^total number of mines in the game
-  }
+    -- | GameConfig @width@ @height@ @numMines@
+    GameConfig {
+      boardWidth  :: Int, -- ^number of columns on the board
+      boardHeight :: Int, -- ^number of rows on the board
+      totalMines  :: Int  -- ^total number of mines in the game
+    }
   deriving Eq
 
 -- | total number of cells for this 'GameConfig'
@@ -22,26 +22,26 @@ data BoardCoordinate =
   -- | BoardCoordinate @column@ @row@
   BoardCoordinate {
     boardColumn :: Int, -- ^column (x-axis)
-    boardRow :: Int -- ^row (y-axis)
+    boardRow    :: Int  -- ^row (y-axis)
   }
 
 -- | internal (non-visible) state of a cell
 data InternalCellState =
-      Safe -- ^the cell does not contain a mine
-    | Mine -- ^the cell does contain a mine
+      Safe      -- ^the cell does not contain a mine
+    | Mine      -- ^the cell does contain a mine
     | Undefined -- ^it is not fixed __yet__ whether this cell will contain a mine
   deriving Eq
 
 -- | state of a cell visible to the player
 data VisibleCellState =
       Unknown -- ^cell is still hidden
-    | Known -- ^cell is open (and contains a mine)
+    | Known   -- ^cell is open (and contains a mine)
     | Flagged -- ^cell was falgged by the player
-    | Unsure -- ^cell was flagged as /unsure/ by the player
+    | Unsure  -- ^cell was flagged as /unsure/ by the player
     | Labeled -- ^cell was revealed and shows the number of adjacent mines
       {
-        totalLabel :: Int, -- ^total number of adjacent mines
-        countdownLabel:: Int -- ^remaining number of adjacent mines based on set flags
+        totalLabel     :: Int, -- ^total number of adjacent mines
+        countdownLabel :: Int  -- ^remaining number of adjacent mines based on set flags
       }
   deriving Eq
 
@@ -50,7 +50,7 @@ data CellState =
     -- | CellState @internalState@ @visibleState@
     CellState {
       internalCellState :: InternalCellState, -- ^internal state of the cell
-      visibleCellState :: VisibleCellState -- ^visible state of the cell
+      visibleCellState  :: VisibleCellState   -- ^visible state of the cell
     }
   deriving Eq
 
@@ -95,10 +95,10 @@ isKnown _ = False
 data GameState =
     -- | GameState @config@ @Maybe previousState@ @cellStates@ @globalGameState@
     GameState {
-      gameConfig :: GameConfig, -- ^board configuration for this game
-      previousState :: Maybe GameState, -- ^previous game state used for undo operations
-      cells :: CellStates, -- ^state of all cells on the board
-      globalGameState :: GlobalGameState -- ^some global states calculated from the states of __all__ cells
+      gameConfig      :: GameConfig,      -- ^board configuration for this game
+      previousState   :: Maybe GameState, -- ^previous game state used for undo operations
+      cells           :: CellStates,      -- ^state of all cells on the board
+      globalGameState :: GlobalGameState  -- ^some global states calculated from the states of __all__ cells
     }
   deriving Eq
 
@@ -111,18 +111,18 @@ undo state = fromMaybe state $ previousState state
 -- | current win/lose state of the game
 data PlayState =
       Playing -- ^game is still running
-    | Win -- ^the player won
-    | Dead -- ^the player lost
+    | Win     -- ^the player won
+    | Dead    -- ^the player lost
   deriving Eq
 
 -- | global states of the game calculated from all cell states
 data GlobalGameState =
-  -- | GlobalGameState @remainingMines@ @freeCells@ @playState@
-  GlobalGameState {
-    remainingMines :: Int, -- ^number of floating mines
-    freeCells :: Int, -- ^number of floating safe cells
-    globalPlayState :: PlayState -- ^whether game was won/lost or is still playing
-  }
+    -- | GlobalGameState @remainingMines@ @freeCells@ @playState@
+    GlobalGameState {
+      remainingMines  :: Int,      -- ^number of floating mines
+      freeCells       :: Int,      -- ^number of floating safe cells
+      globalPlayState :: PlayState -- ^whether game was won/lost or is still playing
+    }
   deriving Eq
 
 -- | get cell on specific coordinate from @cellStates@
@@ -139,7 +139,7 @@ countInState predicate cellStates = countCells predicate $ concat cellStates
 
 -- | a move in the game played by the player
 data GameAction =
-    Reveal BoardCoordinate -- ^reveal a single cell
+    Reveal     BoardCoordinate -- ^reveal a single cell
   | RevealArea BoardCoordinate -- ^reveal all adjacent safe cells if possible
   | ToggleFlag BoardCoordinate -- ^toggle flag/unsure on cell
-  | Undo -- ^undo last 'Reveal' / 'RevealArea' action
+  | Undo                       -- ^undo last 'Reveal' / 'RevealArea' action

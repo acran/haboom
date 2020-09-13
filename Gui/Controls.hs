@@ -18,9 +18,9 @@ controlsDiv defaultConfig = do
       elAttr "button" ("class" =: "btn btn-primary w-100" <> "type" =: "submit")
         $ text "New game"
 
-    width <- numberInput "width" $ boardWidth defaultConfig
+    width  <- numberInput "width"  $ boardWidth  defaultConfig
     height <- numberInput "height" $ boardHeight defaultConfig
-    mines <- numberInput "mines" $ totalMines defaultConfig
+    mines  <- numberInput "mines"  $ totalMines  defaultConfig
 
     return $ GameConfig <$> width <*> height <*> mines
 
@@ -29,10 +29,10 @@ controlsDiv defaultConfig = do
 presetsDiv :: MonadWidget t m =>  m (Event t GameConfig)
 presetsDiv = do
     let presets = [
-            ("I'm too young to die", GameConfig 8 8 8),
-            ("Hey, not too rough", GameConfig 10 10 20),
-            ("Hurt me plenty", GameConfig 15 15 50),
-            ("Ultra-Violence", GameConfig 10 10 50)
+            ("I'm too young to die", GameConfig  8  8  8),
+            ("Hey, not too rough",   GameConfig 10 10 20),
+            ("Hurt me plenty",       GameConfig 15 15 50),
+            ("Ultra-Violence",       GameConfig 10 10 50)
           ]
     events <- sequence $ presetButton <$> presets
     return $ leftmost events
@@ -46,7 +46,7 @@ undoButton gameState = do
     attr state
         | isJust (previousState state) && Win /= playState = fromList [("class", "btn btn-light btn-sm mt-2")]
         | otherwise  = fromList [
-          ("class", "btn btn-light btn-sm mt-2"),
+          ("class",    "btn btn-light btn-sm mt-2"),
           ("disabled", "disabled")
         ]
       where

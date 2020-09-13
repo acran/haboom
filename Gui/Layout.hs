@@ -14,7 +14,9 @@ import Gui.Utils
 headElement :: MonadWidget t m => m ()
 headElement = do
   elAttr "meta" ("name" =: "viewport" <> "content" =: "width=device-width") blank
+
   el "title" $ text "Haboom"
+
   styleSheet "css/bootstrap.min.css"
   styleSheet "css/style.css"
 
@@ -42,7 +44,8 @@ bodyElement config dynGameState = divClass "container" $ do
 
       (dynDisplaySettings, undoEvent) <- divClass "col-lg-3 col-md-6 mt-2" $ do
         dynDisplaySettings <- settingsDiv
-        undoEvent <- undoButton dynGameState
+        undoEvent          <- undoButton dynGameState
+
         return (dynDisplaySettings, undoEvent)
 
       return (leftmost [gameConfigEvent, presetEvent], dynDisplaySettings, undoEvent)

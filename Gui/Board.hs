@@ -18,8 +18,8 @@ statusText config state = el "div" $
     flags = countInState isFlagged $ cells state
     mines = config & totalMines
     showStatus Playing = text $ pack $ "Mines: " ++ show flags ++ "/" ++ show mines
-    showStatus Win = text $ "You win!"
-    showStatus Dead = text $ "You lose!"
+    showStatus Win     = text $ "You win!"
+    showStatus Dead    = text $ "You lose!"
 
 boardDiv :: MonadWidget t m => Int -> Int -> Dynamic t GameState -> Dynamic t DisplaySettings -> m (Event t GameAction)
 boardDiv rows columns dynState dynDisplaySettings = do
@@ -39,13 +39,13 @@ generateBoardCell :: MonadWidget t m => Dynamic t GameState -> Dynamic t Display
 generateBoardCell dynState dynDisplaySettings row column = do
     let dynCellState = cellFromState (BoardCoordinate column row) . cells <$> dynState
     let dynPlayState = globalPlayState . globalGameState <$> dynState
-    let dynAttr = classAttr <$> dynDisplaySettings <*> dynCellState <*> dynPlayState
+    let dynAttr      = classAttr <$> dynDisplaySettings <*> dynCellState <*> dynPlayState
 
     (cellElement, _) <- elCell' dynAttr
 
-    let revealAction = Reveal (BoardCoordinate column row) <$ domEvent Click cellElement
+    let revealAction     = Reveal (BoardCoordinate column row)     <$ domEvent Click cellElement
     let revealAreaAction = RevealArea (BoardCoordinate column row) <$ domEvent Dblclick cellElement
-    let toggleAction = ToggleFlag (BoardCoordinate column row) <$ domEvent Contextmenu cellElement
+    let toggleAction     = ToggleFlag (BoardCoordinate column row) <$ domEvent Contextmenu cellElement
 
     return $ leftmost [revealAction, revealAreaAction, toggleAction]
   where
@@ -59,21 +59,21 @@ generateBoardCell dynState dynDisplaySettings row column = do
           | otherwise = ""
 
         visibility
-          | known = " known"
+          | known     = " known"
           | otherwise = " unknown"
 
         label
-          | Mine <- internalState, known || status == Dead = " bomb"
-          | Win <- status, Mine <- internalState = " bomb-win"
+          | Mine <- internalState, known || status == Dead                        = " bomb"
+          | Win <- status, Mine <- internalState                                  = " bomb-win"
           | settings & countdownMode, Labeled total x <- visibleState, total /= 0 = " label-" ++ show x
-          | Labeled x _ <- visibleState, x /=0 = " label-" ++ show x
+          | Labeled x _ <- visibleState, x /=0                                    = " label-" ++ show x
           | otherwise = ""
 
         flag
           | status /= Playing, Mine <- internalState = ""
-          | Flagged <- visibleState = " flag"
-          | Unsure <- visibleState = " unsure"
-          | otherwise = ""
+          | Flagged <- visibleState                  = " flag"
+          | Unsure <- visibleState                   = " unsure"
+          | otherwise                                = ""
 
         hint
           | settings & debugMode, not known, Mine <- internalState = " hint hint-mine"

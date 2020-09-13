@@ -22,23 +22,24 @@ instance Monad GameMonad where
   return x = GameMonad $ \s -> (x, s)
   GameMonad x >>= f =
     GameMonad $ \s0 -> let
-      (val_x, s1) = x s0
+      (val_x, s1)      = x s0
       (GameMonad cont) = f val_x
     in cont s1
 
 -- | evaluate an action on a GameState and return new state
 execState ::
      GameMonad a -- ^action to be executed
-  -> GameState -- ^current state of the game
-  -> GameState -- ^game state after the action
+  -> GameState   -- ^current state of the game
+  -> GameState   -- ^game state after the action
 execState action state = snd $ runState action state
 
 -- | same as 'execState' but save previous state for undo operations
 execStateWithUndo :: GameMonad a -> GameState -> GameState
 execStateWithUndo action state
-   | result == state = result
-   | otherwise = result {previousState = Just state}
-  where result = execState action state
+    | result == state = result
+    | otherwise       = result {previousState = Just state}
+  where
+    result = execState action state
 
 -- | get current 'GameState'
 --
@@ -77,17 +78,18 @@ setCell (BoardCoordinate column row) updatedCell = do
     put x = GameMonad $ \_ -> ((), x)
     updateGlobalState cellStates config =
       let
-        numFixedMines = countInState isMine cellStates
+        numFixedMines     = countInState isMine cellStates
         numRemainingMines = totalMines config - numFixedMines
         numRemainingCells = countInState isUndefined cellStates
-        numFreeCells = numRemainingCells - numRemainingMines
+        numFreeCells      = numRemainingCells - numRemainingMines
 
         isRevealedMine cell = isMine cell && isKnown cell
-        numTotalCells =  boardHeight config * boardWidth config
-        numRevealedCells = countInState isKnown cellStates
+        numTotalCells       = boardHeight config * boardWidth config
+        numRevealed         = countInState isKnown cellStates
+        total               = totalMines config
         playState
           | any isRevealedMine $ concat cellStates = Dead
-          | numRevealedCells + totalMines config == numTotalCells = Win
-          | otherwise = Playing
+          | numRevealed + total == numTotalCells   = Win
+          | otherwise                              = Playing
 
       in GlobalGameState numRemainingMines numFreeCells playState

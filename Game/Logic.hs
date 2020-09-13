@@ -21,7 +21,7 @@ newGame config = GameState config Nothing cellStates globalState
 --   this will first update the requested cell if necessary (i.e. cell is 'Undefined')
 --   assigning the cell to contain a mine or not
 getCellFixed ::
-     Bool -- ^always return a safe cell if possible (effectively allow guessing anywhere)
+     Bool            -- ^always return a safe cell if possible (effectively allow guessing anywhere)
   -> BoardCoordinate -- ^coordinate of cell to reveal
   -> GameMonad CellState
 getCellFixed safe coordinates = do
@@ -48,11 +48,11 @@ getCellFixed safe coordinates = do
 -- | evaluate a single move of the player and return the new 'GameState'
 execAction :: GameAction -> GameState -> GameState
 execAction action state
-    | Undo <- action, playState /= Win = undo state
-    | playState /= Playing = state
+    | Undo <- action, playState /= Win   = undo state
+    | playState /= Playing               = state
     | (ToggleFlag coordinates) <- action = execState (toggleFlagState coordinates) state
     | (RevealArea coordinates) <- action = execStateWithUndo (revealArea coordinates) state
-    | (Reveal coordinates) <- action = execStateWithUndo (reveal False coordinates) state
+    | (Reveal coordinates) <- action     = execStateWithUndo (reveal False coordinates) state
     | otherwise = error "Bug: unkwon action"
   where
     playState = (globalPlayState . globalGameState) state
@@ -73,7 +73,7 @@ revealArea coordinates = do
 
 -- | reveal a single cell
 reveal ::
-     Bool -- ^force reveal of flagged cells if safe (recursively used when no adjacent mines)
+     Bool            -- ^force reveal of flagged cells if safe (recursively used when no adjacent mines)
   -> BoardCoordinate -- ^coordinates to reveal
   -> GameMonad ()
 reveal force coordinates = do
@@ -98,7 +98,7 @@ reveal force coordinates = do
     revealedCell cell mines flags
       | isMine cell = CellState Mine Known
       | isSafe cell = CellState Safe (Labeled mines (mines - flags))
-      | otherwise = error "Bug: invalid state trying to reveal cell"
+      | otherwise   = error "Bug: invalid state trying to reveal cell"
 
     -- | when cell has no adjacent mines reveal all neighbors too
     maybeRevealNeighbors (CellState Safe (Labeled 0 _)) = do
@@ -145,8 +145,8 @@ toggleFlagState coordinates = do
     toggleCell cell
         | currentState == Unknown = cell {visibleCellState = Flagged}
         | currentState == Flagged = cell {visibleCellState = Unsure}
-        | currentState == Unsure = cell {visibleCellState = Unknown}
-        | otherwise = cell
+        | currentState == Unsure  = cell {visibleCellState = Unknown}
+        | otherwise               = cell
       where
         currentState = visibleCellState cell
 
