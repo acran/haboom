@@ -1,0 +1,362 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><title
+    >Game.Logic</title
+    ><link href="ocean.css" rel="stylesheet" type="text/css" title="Ocean"
+     /><link rel="stylesheet" type="text/css" href="quick-jump.css"
+     /><script src="haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><ul class="links" id="page-menu"
+      ><li
+	><a href="index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="doc-index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ><p class="caption empty"
+      >&nbsp;</p
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Game.Logic</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:newGame"
+	      >newGame</a
+	      > :: <a href="Game-Types.html#t:GameConfig" title="Game.Types"
+	      >GameConfig</a
+	      > -&gt; <a href="Game-Types.html#t:GameState" title="Game.Types"
+	      >GameState</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:getCellFixed"
+	      >getCellFixed</a
+	      > :: Bool -&gt; <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+	      >BoardCoordinate</a
+	      > -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	      >GameMonad</a
+	      > <a href="Game-Types.html#t:CellState" title="Game.Types"
+	      >CellState</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:execAction"
+	      >execAction</a
+	      > :: <a href="Game-Types.html#t:GameAction" title="Game.Types"
+	      >GameAction</a
+	      > -&gt; <a href="Game-Types.html#t:GameState" title="Game.Types"
+	      >GameState</a
+	      > -&gt; <a href="Game-Types.html#t:GameState" title="Game.Types"
+	      >GameState</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:revealArea"
+	      >revealArea</a
+	      > :: <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+	      >BoardCoordinate</a
+	      > -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	      >GameMonad</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:reveal"
+	      >reveal</a
+	      > :: Bool -&gt; <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+	      >BoardCoordinate</a
+	      > -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	      >GameMonad</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:neighborCoordinates"
+	      >neighborCoordinates</a
+	      > :: <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+	      >BoardCoordinate</a
+	      > -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	      >GameMonad</a
+	      > [<a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+	      >BoardCoordinate</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:toggleFlagState"
+	      >toggleFlagState</a
+	      > :: <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+	      >BoardCoordinate</a
+	      > -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	      >GameMonad</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:updateCountdownLabel"
+	      >updateCountdownLabel</a
+	      > :: <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+	      >BoardCoordinate</a
+	      > -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	      >GameMonad</a
+	      > ()</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:newGame" class="def"
+	    >newGame</a
+	    > :: <a href="Game-Types.html#t:GameConfig" title="Game.Types"
+	    >GameConfig</a
+	    > -&gt; <a href="Game-Types.html#t:GameState" title="Game.Types"
+	    >GameState</a
+	    > <a href="#v:newGame" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >create a new <code
+	      ><a href="Game-Types.html#t:GameState" title="Game.Types"
+		>GameState</a
+		></code
+	      > for given <code
+	      ><a href="Game-Types.html#t:GameConfig" title="Game.Types"
+		>GameConfig</a
+		></code
+	      ></p
+	    ><p
+	    >this will initialize <code
+	      ><a href="Game-Types.html#t:CellStates" title="Game.Types"
+		>CellStates</a
+		></code
+	      > with the respective dimensions</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getCellFixed" class="def"
+	    >getCellFixed</a
+	    > <a href="#v:getCellFixed" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>:: Bool</td
+		><td class="doc"
+		><p
+		  >always return a safe cell if possible (effectively allow guessing anywhere)</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>-&gt; <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+		  >BoardCoordinate</a
+		  ></td
+		><td class="doc"
+		><p
+		  >coordinate of cell to reveal</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>-&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+		  >GameMonad</a
+		  > <a href="Game-Types.html#t:CellState" title="Game.Types"
+		  >CellState</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >get a cell with fixed internal state</p
+	    ><p
+	    >this will first update the requested cell if necessary (i.e. cell is <code
+	      ><a href="Game-Types.html#v:Undefined" title="Game.Types"
+		>Undefined</a
+		></code
+	      >)
+   assigning the cell to contain a mine or not</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:execAction" class="def"
+	    >execAction</a
+	    > :: <a href="Game-Types.html#t:GameAction" title="Game.Types"
+	    >GameAction</a
+	    > -&gt; <a href="Game-Types.html#t:GameState" title="Game.Types"
+	    >GameState</a
+	    > -&gt; <a href="Game-Types.html#t:GameState" title="Game.Types"
+	    >GameState</a
+	    > <a href="#v:execAction" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >evaluate a single move of the player and return the new <code
+	      ><a href="Game-Types.html#t:GameState" title="Game.Types"
+		>GameState</a
+		></code
+	      ></p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:revealArea" class="def"
+	    >revealArea</a
+	    > :: <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+	    >BoardCoordinate</a
+	    > -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	    >GameMonad</a
+	    > () <a href="#v:revealArea" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >reveal all adjacent safe cells - according to set flags</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:reveal" class="def"
+	    >reveal</a
+	    > <a href="#v:reveal" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>:: Bool</td
+		><td class="doc"
+		><p
+		  >force reveal of flagged cells if safe (recursively used when no adjacent mines)</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>-&gt; <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+		  >BoardCoordinate</a
+		  ></td
+		><td class="doc"
+		><p
+		  >coordinates to reveal</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>-&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+		  >GameMonad</a
+		  > ()</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >reveal a single cell</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:neighborCoordinates" class="def"
+	    >neighborCoordinates</a
+	    > :: <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+	    >BoardCoordinate</a
+	    > -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	    >GameMonad</a
+	    > [<a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+	    >BoardCoordinate</a
+	    >] <a href="#v:neighborCoordinates" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >get coordinates of adjacent cells</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toggleFlagState" class="def"
+	    >toggleFlagState</a
+	    > :: <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+	    >BoardCoordinate</a
+	    > -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	    >GameMonad</a
+	    > () <a href="#v:toggleFlagState" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >cycle through <code
+	      ><a href="Game-Types.html#v:Flagged" title="Game.Types"
+		>Flagged</a
+		></code
+	      > <em
+	      > <code
+		><a href="Game-Types.html#v:Unsure" title="Game.Types"
+		  >Unsure</a
+		  ></code
+		> </em
+	      > <code
+	      ><a href="Game-Types.html#v:Unknown" title="Game.Types"
+		>Unknown</a
+		></code
+	      > states</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:updateCountdownLabel" class="def"
+	    >updateCountdownLabel</a
+	    > :: <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+	    >BoardCoordinate</a
+	    > -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	    >GameMonad</a
+	    > () <a href="#v:updateCountdownLabel" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >updated the countdown label based on adjacent flags</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.22.0</p
+      ></div
+    ></body
+  ></html
+>

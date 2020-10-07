@@ -1,0 +1,1704 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><title
+    >Game.Types</title
+    ><link href="ocean.css" rel="stylesheet" type="text/css" title="Ocean"
+     /><link rel="stylesheet" type="text/css" href="quick-jump.css"
+     /><script src="haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><ul class="links" id="page-menu"
+      ><li
+	><a href="index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="doc-index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ><p class="caption empty"
+      >&nbsp;</p
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Game.Types</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:BoardCoordinate"
+	      >BoardCoordinate</a
+	      > = <a href="#v:BoardCoordinate"
+	      >BoardCoordinate</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:boardColumn"
+		  >boardColumn</a
+		  > :: Int</li
+		><li
+		><a href="#v:boardRow"
+		  >boardRow</a
+		  > :: Int</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:GameAction"
+	      >GameAction</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:Reveal"
+		  >Reveal</a
+		  > <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+		  >BoardCoordinate</a
+		  ></li
+		><li
+		>| <a href="#v:RevealArea"
+		  >RevealArea</a
+		  > <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+		  >BoardCoordinate</a
+		  ></li
+		><li
+		>| <a href="#v:ToggleFlag"
+		  >ToggleFlag</a
+		  > <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+		  >BoardCoordinate</a
+		  ></li
+		><li
+		>| <a href="#v:Undo"
+		  >Undo</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:GameState"
+	      >GameState</a
+	      > = <a href="#v:GameState"
+	      >GameState</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:gameConfig"
+		  >gameConfig</a
+		  > :: <a href="Game-Types.html#t:GameConfig" title="Game.Types"
+		  >GameConfig</a
+		  ></li
+		><li
+		><a href="#v:previousState"
+		  >previousState</a
+		  > :: Maybe <a href="Game-Types.html#t:GameState" title="Game.Types"
+		  >GameState</a
+		  ></li
+		><li
+		><a href="#v:cells"
+		  >cells</a
+		  > :: <a href="Game-Types.html#t:CellStates" title="Game.Types"
+		  >CellStates</a
+		  ></li
+		><li
+		><a href="#v:globalGameState"
+		  >globalGameState</a
+		  > :: <a href="Game-Types.html#t:GlobalGameState" title="Game.Types"
+		  >GlobalGameState</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:undo"
+	      >undo</a
+	      > :: <a href="Game-Types.html#t:GameState" title="Game.Types"
+	      >GameState</a
+	      > -&gt; <a href="Game-Types.html#t:GameState" title="Game.Types"
+	      >GameState</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:GameConfig"
+	      >GameConfig</a
+	      > = <a href="#v:GameConfig"
+	      >GameConfig</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:boardWidth"
+		  >boardWidth</a
+		  > :: Int</li
+		><li
+		><a href="#v:boardHeight"
+		  >boardHeight</a
+		  > :: Int</li
+		><li
+		><a href="#v:totalMines"
+		  >totalMines</a
+		  > :: Int</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:totalCells"
+	      >totalCells</a
+	      > :: <a href="Game-Types.html#t:GameConfig" title="Game.Types"
+	      >GameConfig</a
+	      > -&gt; Int</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:PlayState"
+	      >PlayState</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:Playing"
+		  >Playing</a
+		  ></li
+		><li
+		>| <a href="#v:Win"
+		  >Win</a
+		  ></li
+		><li
+		>| <a href="#v:Dead"
+		  >Dead</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:GlobalGameState"
+	      >GlobalGameState</a
+	      > = <a href="#v:GlobalGameState"
+	      >GlobalGameState</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:remainingMines"
+		  >remainingMines</a
+		  > :: Int</li
+		><li
+		><a href="#v:freeCells"
+		  >freeCells</a
+		  > :: Int</li
+		><li
+		><a href="#v:globalPlayState"
+		  >globalPlayState</a
+		  > :: <a href="Game-Types.html#t:PlayState" title="Game.Types"
+		  >PlayState</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:InternalCellState"
+	      >InternalCellState</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:Safe"
+		  >Safe</a
+		  ></li
+		><li
+		>| <a href="#v:Mine"
+		  >Mine</a
+		  ></li
+		><li
+		>| <a href="#v:Undefined"
+		  >Undefined</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:VisibleCellState"
+	      >VisibleCellState</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:Unknown"
+		  >Unknown</a
+		  ></li
+		><li
+		>| <a href="#v:Known"
+		  >Known</a
+		  ></li
+		><li
+		>| <a href="#v:Flagged"
+		  >Flagged</a
+		  ></li
+		><li
+		>| <a href="#v:Unsure"
+		  >Unsure</a
+		  ></li
+		><li
+		>| <a href="#v:Labeled"
+		  >Labeled</a
+		  > { <ul class="subs"
+		  ><li
+		    ><a href="#v:totalLabel"
+		      >totalLabel</a
+		      > :: Int</li
+		    ><li
+		    ><a href="#v:countdownLabel"
+		      >countdownLabel</a
+		      > :: Int</li
+		    ></ul
+		  > }</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:CellState"
+	      >CellState</a
+	      > = <a href="#v:CellState"
+	      >CellState</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:internalCellState"
+		  >internalCellState</a
+		  > :: <a href="Game-Types.html#t:InternalCellState" title="Game.Types"
+		  >InternalCellState</a
+		  ></li
+		><li
+		><a href="#v:visibleCellState"
+		  >visibleCellState</a
+		  > :: <a href="Game-Types.html#t:VisibleCellState" title="Game.Types"
+		  >VisibleCellState</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:CellStates"
+	      >CellStates</a
+	      > = [[<a href="Game-Types.html#t:CellState" title="Game.Types"
+	      >CellState</a
+	      >]]</li
+	    ><li class="src short"
+	    ><a href="#v:isMine"
+	      >isMine</a
+	      > :: <a href="Game-Types.html#t:CellState" title="Game.Types"
+	      >CellState</a
+	      > -&gt; Bool</li
+	    ><li class="src short"
+	    ><a href="#v:isSafe"
+	      >isSafe</a
+	      > :: <a href="Game-Types.html#t:CellState" title="Game.Types"
+	      >CellState</a
+	      > -&gt; Bool</li
+	    ><li class="src short"
+	    ><a href="#v:isUndefined"
+	      >isUndefined</a
+	      > :: <a href="Game-Types.html#t:CellState" title="Game.Types"
+	      >CellState</a
+	      > -&gt; Bool</li
+	    ><li class="src short"
+	    ><a href="#v:isFlagged"
+	      >isFlagged</a
+	      > :: <a href="Game-Types.html#t:CellState" title="Game.Types"
+	      >CellState</a
+	      > -&gt; Bool</li
+	    ><li class="src short"
+	    ><a href="#v:isKnown"
+	      >isKnown</a
+	      > :: <a href="Game-Types.html#t:CellState" title="Game.Types"
+	      >CellState</a
+	      > -&gt; Bool</li
+	    ><li class="src short"
+	    ><a href="#v:cellFromState"
+	      >cellFromState</a
+	      > :: <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+	      >BoardCoordinate</a
+	      > -&gt; <a href="Game-Types.html#t:CellStates" title="Game.Types"
+	      >CellStates</a
+	      > -&gt; <a href="Game-Types.html#t:CellState" title="Game.Types"
+	      >CellState</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:countCells"
+	      >countCells</a
+	      > :: (<a href="Game-Types.html#t:CellState" title="Game.Types"
+	      >CellState</a
+	      > -&gt; Bool) -&gt; [<a href="Game-Types.html#t:CellState" title="Game.Types"
+	      >CellState</a
+	      >] -&gt; Int</li
+	    ><li class="src short"
+	    ><a href="#v:countInState"
+	      >countInState</a
+	      > :: (<a href="Game-Types.html#t:CellState" title="Game.Types"
+	      >CellState</a
+	      > -&gt; Bool) -&gt; <a href="Game-Types.html#t:CellStates" title="Game.Types"
+	      >CellStates</a
+	      > -&gt; Int</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:BoardCoordinate" class="def"
+	    >BoardCoordinate</a
+	    > <a href="#t:BoardCoordinate" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >position of a cell on the board</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:BoardCoordinate" class="def"
+		  >BoardCoordinate</a
+		  ></td
+		><td class="doc"
+		><p
+		  >BoardCoordinate <code
+		    >column</code
+		    > <code
+		    >row</code
+		    ></p
+		  ></td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:boardColumn" class="def"
+			  >boardColumn</a
+			  > :: Int</dfn
+			><div class="doc"
+			><p
+			  >column (x-axis)</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:boardRow" class="def"
+			  >boardRow</a
+			  > :: Int</dfn
+			><div class="doc"
+			><p
+			  >row (y-axis)</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:GameAction" class="def"
+	    >GameAction</a
+	    > <a href="#t:GameAction" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >a move in the game played by the player</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Reveal" class="def"
+		  >Reveal</a
+		  > <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+		  >BoardCoordinate</a
+		  ></td
+		><td class="doc"
+		><p
+		  >reveal a single cell</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:RevealArea" class="def"
+		  >RevealArea</a
+		  > <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+		  >BoardCoordinate</a
+		  ></td
+		><td class="doc"
+		><p
+		  >reveal all adjacent safe cells if possible</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ToggleFlag" class="def"
+		  >ToggleFlag</a
+		  > <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+		  >BoardCoordinate</a
+		  ></td
+		><td class="doc"
+		><p
+		  >toggle flag/unsure on cell</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Undo" class="def"
+		  >Undo</a
+		  ></td
+		><td class="doc"
+		><p
+		  >undo last <code
+		    ><a href="Game-Types.html#v:Reveal" title="Game.Types"
+		      >Reveal</a
+		      ></code
+		    > / <code
+		    ><a href="Game-Types.html#v:RevealArea" title="Game.Types"
+		      >RevealArea</a
+		      ></code
+		    > action</p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:GameState" class="def"
+	    >GameState</a
+	    > <a href="#t:GameState" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >represents the complete and consistent state of the game
+   in a given point in time</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:GameState" class="def"
+		  >GameState</a
+		  ></td
+		><td class="doc"
+		><p
+		  >GameState <code
+		    >config</code
+		    > <code
+		    >Maybe previousState</code
+		    > <code
+		    >cellStates</code
+		    > <code
+		    >globalGameState</code
+		    ></p
+		  ></td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:gameConfig" class="def"
+			  >gameConfig</a
+			  > :: <a href="Game-Types.html#t:GameConfig" title="Game.Types"
+			  >GameConfig</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >board configuration for this game</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:previousState" class="def"
+			  >previousState</a
+			  > :: Maybe <a href="Game-Types.html#t:GameState" title="Game.Types"
+			  >GameState</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >previous game state used for undo operations</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:cells" class="def"
+			  >cells</a
+			  > :: <a href="Game-Types.html#t:CellStates" title="Game.Types"
+			  >CellStates</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >state of all cells on the board</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:globalGameState" class="def"
+			  >globalGameState</a
+			  > :: <a href="Game-Types.html#t:GlobalGameState" title="Game.Types"
+			  >GlobalGameState</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >some global states calculated from the states of <strong
+			    >all</strong
+			    > cells</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><details id="i:GameState" open="open"
+	    ><summary
+	      >Instances</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:GameState:Eq:1"
+		      ></span
+		      > Eq <a href="Game-Types.html#t:GameState" title="Game.Types"
+		      >GameState</a
+		      ></span
+		    > <a href="#t:GameState" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:GameState:Eq:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Game-Types.html"
+			>Game.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > :: <a href="Game-Types.html#t:GameState" title="Game.Types"
+			  >GameState</a
+			  > -&gt; <a href="Game-Types.html#t:GameState" title="Game.Types"
+			  >GameState</a
+			  > -&gt; Bool</p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > :: <a href="Game-Types.html#t:GameState" title="Game.Types"
+			  >GameState</a
+			  > -&gt; <a href="Game-Types.html#t:GameState" title="Game.Types"
+			  >GameState</a
+			  > -&gt; Bool</p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:undo" class="def"
+	    >undo</a
+	    > :: <a href="Game-Types.html#t:GameState" title="Game.Types"
+	    >GameState</a
+	    > -&gt; <a href="Game-Types.html#t:GameState" title="Game.Types"
+	    >GameState</a
+	    > <a href="#v:undo" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >return the previous game state to undo last reveal</p
+	    ><p
+	    >if no previous state is available, the same state is returned</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:GameConfig" class="def"
+	    >GameConfig</a
+	    > <a href="#t:GameConfig" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Board configuration for a new game</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:GameConfig" class="def"
+		  >GameConfig</a
+		  ></td
+		><td class="doc"
+		><p
+		  >GameConfig <code
+		    >width</code
+		    > <code
+		    >height</code
+		    > <code
+		    >numMines</code
+		    ></p
+		  ></td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:boardWidth" class="def"
+			  >boardWidth</a
+			  > :: Int</dfn
+			><div class="doc"
+			><p
+			  >number of columns on the board</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:boardHeight" class="def"
+			  >boardHeight</a
+			  > :: Int</dfn
+			><div class="doc"
+			><p
+			  >number of rows on the board</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:totalMines" class="def"
+			  >totalMines</a
+			  > :: Int</dfn
+			><div class="doc"
+			><p
+			  >total number of mines in the game</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><details id="i:GameConfig" open="open"
+	    ><summary
+	      >Instances</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:GameConfig:Eq:1"
+		      ></span
+		      > Eq <a href="Game-Types.html#t:GameConfig" title="Game.Types"
+		      >GameConfig</a
+		      ></span
+		    > <a href="#t:GameConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:GameConfig:Eq:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Game-Types.html"
+			>Game.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > :: <a href="Game-Types.html#t:GameConfig" title="Game.Types"
+			  >GameConfig</a
+			  > -&gt; <a href="Game-Types.html#t:GameConfig" title="Game.Types"
+			  >GameConfig</a
+			  > -&gt; Bool</p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > :: <a href="Game-Types.html#t:GameConfig" title="Game.Types"
+			  >GameConfig</a
+			  > -&gt; <a href="Game-Types.html#t:GameConfig" title="Game.Types"
+			  >GameConfig</a
+			  > -&gt; Bool</p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:totalCells" class="def"
+	    >totalCells</a
+	    > :: <a href="Game-Types.html#t:GameConfig" title="Game.Types"
+	    >GameConfig</a
+	    > -&gt; Int <a href="#v:totalCells" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >total number of cells for this <code
+	      ><a href="Game-Types.html#t:GameConfig" title="Game.Types"
+		>GameConfig</a
+		></code
+	      ></p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:PlayState" class="def"
+	    >PlayState</a
+	    > <a href="#t:PlayState" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >current win/lose state of the game</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Playing" class="def"
+		  >Playing</a
+		  ></td
+		><td class="doc"
+		><p
+		  >game is still running</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Win" class="def"
+		  >Win</a
+		  ></td
+		><td class="doc"
+		><p
+		  >the player won</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Dead" class="def"
+		  >Dead</a
+		  ></td
+		><td class="doc"
+		><p
+		  >the player lost</p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><details id="i:PlayState" open="open"
+	    ><summary
+	      >Instances</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PlayState:Eq:1"
+		      ></span
+		      > Eq <a href="Game-Types.html#t:PlayState" title="Game.Types"
+		      >PlayState</a
+		      ></span
+		    > <a href="#t:PlayState" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PlayState:Eq:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Game-Types.html"
+			>Game.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > :: <a href="Game-Types.html#t:PlayState" title="Game.Types"
+			  >PlayState</a
+			  > -&gt; <a href="Game-Types.html#t:PlayState" title="Game.Types"
+			  >PlayState</a
+			  > -&gt; Bool</p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > :: <a href="Game-Types.html#t:PlayState" title="Game.Types"
+			  >PlayState</a
+			  > -&gt; <a href="Game-Types.html#t:PlayState" title="Game.Types"
+			  >PlayState</a
+			  > -&gt; Bool</p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:GlobalGameState" class="def"
+	    >GlobalGameState</a
+	    > <a href="#t:GlobalGameState" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >global states of the game calculated from all cell states</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:GlobalGameState" class="def"
+		  >GlobalGameState</a
+		  ></td
+		><td class="doc"
+		><p
+		  >GlobalGameState <code
+		    >remainingMines</code
+		    > <code
+		    >freeCells</code
+		    > <code
+		    >playState</code
+		    ></p
+		  ></td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:remainingMines" class="def"
+			  >remainingMines</a
+			  > :: Int</dfn
+			><div class="doc"
+			><p
+			  >number of floating mines</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:freeCells" class="def"
+			  >freeCells</a
+			  > :: Int</dfn
+			><div class="doc"
+			><p
+			  >number of floating safe cells</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:globalPlayState" class="def"
+			  >globalPlayState</a
+			  > :: <a href="Game-Types.html#t:PlayState" title="Game.Types"
+			  >PlayState</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >whether game was won/lost or is still playing</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><details id="i:GlobalGameState" open="open"
+	    ><summary
+	      >Instances</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:GlobalGameState:Eq:1"
+		      ></span
+		      > Eq <a href="Game-Types.html#t:GlobalGameState" title="Game.Types"
+		      >GlobalGameState</a
+		      ></span
+		    > <a href="#t:GlobalGameState" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:GlobalGameState:Eq:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Game-Types.html"
+			>Game.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > :: <a href="Game-Types.html#t:GlobalGameState" title="Game.Types"
+			  >GlobalGameState</a
+			  > -&gt; <a href="Game-Types.html#t:GlobalGameState" title="Game.Types"
+			  >GlobalGameState</a
+			  > -&gt; Bool</p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > :: <a href="Game-Types.html#t:GlobalGameState" title="Game.Types"
+			  >GlobalGameState</a
+			  > -&gt; <a href="Game-Types.html#t:GlobalGameState" title="Game.Types"
+			  >GlobalGameState</a
+			  > -&gt; Bool</p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:InternalCellState" class="def"
+	    >InternalCellState</a
+	    > <a href="#t:InternalCellState" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >internal (non-visible) state of a cell</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Safe" class="def"
+		  >Safe</a
+		  ></td
+		><td class="doc"
+		><p
+		  >the cell does not contain a mine</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Mine" class="def"
+		  >Mine</a
+		  ></td
+		><td class="doc"
+		><p
+		  >the cell does contain a mine</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Undefined" class="def"
+		  >Undefined</a
+		  ></td
+		><td class="doc"
+		><p
+		  >it is not fixed <strong
+		    >yet</strong
+		    > whether this cell will contain a mine</p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><details id="i:InternalCellState" open="open"
+	    ><summary
+	      >Instances</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:InternalCellState:Eq:1"
+		      ></span
+		      > Eq <a href="Game-Types.html#t:InternalCellState" title="Game.Types"
+		      >InternalCellState</a
+		      ></span
+		    > <a href="#t:InternalCellState" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:InternalCellState:Eq:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Game-Types.html"
+			>Game.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > :: <a href="Game-Types.html#t:InternalCellState" title="Game.Types"
+			  >InternalCellState</a
+			  > -&gt; <a href="Game-Types.html#t:InternalCellState" title="Game.Types"
+			  >InternalCellState</a
+			  > -&gt; Bool</p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > :: <a href="Game-Types.html#t:InternalCellState" title="Game.Types"
+			  >InternalCellState</a
+			  > -&gt; <a href="Game-Types.html#t:InternalCellState" title="Game.Types"
+			  >InternalCellState</a
+			  > -&gt; Bool</p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:VisibleCellState" class="def"
+	    >VisibleCellState</a
+	    > <a href="#t:VisibleCellState" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >state of a cell visible to the player</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Unknown" class="def"
+		  >Unknown</a
+		  ></td
+		><td class="doc"
+		><p
+		  >cell is still hidden</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Known" class="def"
+		  >Known</a
+		  ></td
+		><td class="doc"
+		><p
+		  >cell is open (and contains a mine)</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Flagged" class="def"
+		  >Flagged</a
+		  ></td
+		><td class="doc"
+		><p
+		  >cell was falgged by the player</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Unsure" class="def"
+		  >Unsure</a
+		  ></td
+		><td class="doc"
+		><p
+		  >cell was flagged as <em
+		    >unsure</em
+		    > by the player</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Labeled" class="def"
+		  >Labeled</a
+		  ></td
+		><td class="doc"
+		><p
+		  >cell was revealed and shows the number of adjacent mines</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:totalLabel" class="def"
+			  >totalLabel</a
+			  > :: Int</dfn
+			><div class="doc"
+			><p
+			  >total number of adjacent mines</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:countdownLabel" class="def"
+			  >countdownLabel</a
+			  > :: Int</dfn
+			><div class="doc"
+			><p
+			  >remaining number of adjacent mines based on set flags</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><details id="i:VisibleCellState" open="open"
+	    ><summary
+	      >Instances</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:VisibleCellState:Eq:1"
+		      ></span
+		      > Eq <a href="Game-Types.html#t:VisibleCellState" title="Game.Types"
+		      >VisibleCellState</a
+		      ></span
+		    > <a href="#t:VisibleCellState" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:VisibleCellState:Eq:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Game-Types.html"
+			>Game.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > :: <a href="Game-Types.html#t:VisibleCellState" title="Game.Types"
+			  >VisibleCellState</a
+			  > -&gt; <a href="Game-Types.html#t:VisibleCellState" title="Game.Types"
+			  >VisibleCellState</a
+			  > -&gt; Bool</p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > :: <a href="Game-Types.html#t:VisibleCellState" title="Game.Types"
+			  >VisibleCellState</a
+			  > -&gt; <a href="Game-Types.html#t:VisibleCellState" title="Game.Types"
+			  >VisibleCellState</a
+			  > -&gt; Bool</p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:CellState" class="def"
+	    >CellState</a
+	    > <a href="#t:CellState" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >the state of cell on the board</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:CellState" class="def"
+		  >CellState</a
+		  ></td
+		><td class="doc"
+		><p
+		  >CellState <code
+		    >internalState</code
+		    > <code
+		    >visibleState</code
+		    ></p
+		  ></td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:internalCellState" class="def"
+			  >internalCellState</a
+			  > :: <a href="Game-Types.html#t:InternalCellState" title="Game.Types"
+			  >InternalCellState</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >internal state of the cell</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:visibleCellState" class="def"
+			  >visibleCellState</a
+			  > :: <a href="Game-Types.html#t:VisibleCellState" title="Game.Types"
+			  >VisibleCellState</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >visible state of the cell</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><details id="i:CellState" open="open"
+	    ><summary
+	      >Instances</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CellState:Eq:1"
+		      ></span
+		      > Eq <a href="Game-Types.html#t:CellState" title="Game.Types"
+		      >CellState</a
+		      ></span
+		    > <a href="#t:CellState" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CellState:Eq:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Game-Types.html"
+			>Game.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > :: <a href="Game-Types.html#t:CellState" title="Game.Types"
+			  >CellState</a
+			  > -&gt; <a href="Game-Types.html#t:CellState" title="Game.Types"
+			  >CellState</a
+			  > -&gt; Bool</p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > :: <a href="Game-Types.html#t:CellState" title="Game.Types"
+			  >CellState</a
+			  > -&gt; <a href="Game-Types.html#t:CellState" title="Game.Types"
+			  >CellState</a
+			  > -&gt; Bool</p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CellState:Semigroup:2"
+		      ></span
+		      > Semigroup <a href="Game-Types.html#t:CellState" title="Game.Types"
+		      >CellState</a
+		      ></span
+		    > <a href="#t:CellState" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CellState:Semigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Game-Types.html"
+			>Game.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > :: <a href="Game-Types.html#t:CellState" title="Game.Types"
+			  >CellState</a
+			  > -&gt; <a href="Game-Types.html#t:CellState" title="Game.Types"
+			  >CellState</a
+			  > -&gt; <a href="Game-Types.html#t:CellState" title="Game.Types"
+			  >CellState</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > :: NonEmpty <a href="Game-Types.html#t:CellState" title="Game.Types"
+			  >CellState</a
+			  > -&gt; <a href="Game-Types.html#t:CellState" title="Game.Types"
+			  >CellState</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > :: Integral b =&gt; b -&gt; <a href="Game-Types.html#t:CellState" title="Game.Types"
+			  >CellState</a
+			  > -&gt; <a href="Game-Types.html#t:CellState" title="Game.Types"
+			  >CellState</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CellState:Monoid:3"
+		      ></span
+		      > Monoid <a href="Game-Types.html#t:CellState" title="Game.Types"
+		      >CellState</a
+		      ></span
+		    > <a href="#t:CellState" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CellState:Monoid:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Game-Types.html"
+			>Game.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > :: <a href="Game-Types.html#t:CellState" title="Game.Types"
+			  >CellState</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > :: <a href="Game-Types.html#t:CellState" title="Game.Types"
+			  >CellState</a
+			  > -&gt; <a href="Game-Types.html#t:CellState" title="Game.Types"
+			  >CellState</a
+			  > -&gt; <a href="Game-Types.html#t:CellState" title="Game.Types"
+			  >CellState</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > :: [<a href="Game-Types.html#t:CellState" title="Game.Types"
+			  >CellState</a
+			  >] -&gt; <a href="Game-Types.html#t:CellState" title="Game.Types"
+			  >CellState</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:CellStates" class="def"
+	    >CellStates</a
+	    > = [[<a href="Game-Types.html#t:CellState" title="Game.Types"
+	    >CellState</a
+	    >]] <a href="#t:CellStates" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >rows and columns of cells representing the game board</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isMine" class="def"
+	    >isMine</a
+	    > :: <a href="Game-Types.html#t:CellState" title="Game.Types"
+	    >CellState</a
+	    > -&gt; Bool <a href="#v:isMine" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >whether a cell (definitely) contains a mine</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isSafe" class="def"
+	    >isSafe</a
+	    > :: <a href="Game-Types.html#t:CellState" title="Game.Types"
+	    >CellState</a
+	    > -&gt; Bool <a href="#v:isSafe" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >whether a cell (definitely) contains <strong
+	      >no</strong
+	      > mine</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isUndefined" class="def"
+	    >isUndefined</a
+	    > :: <a href="Game-Types.html#t:CellState" title="Game.Types"
+	    >CellState</a
+	    > -&gt; Bool <a href="#v:isUndefined" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >whether the content of the cell was not fixed <em
+	      >yet</em
+	      ></p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isFlagged" class="def"
+	    >isFlagged</a
+	    > :: <a href="Game-Types.html#t:CellState" title="Game.Types"
+	    >CellState</a
+	    > -&gt; Bool <a href="#v:isFlagged" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >whether the cell was flagged by the player</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isKnown" class="def"
+	    >isKnown</a
+	    > :: <a href="Game-Types.html#t:CellState" title="Game.Types"
+	    >CellState</a
+	    > -&gt; Bool <a href="#v:isKnown" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >whether the cell is revealed</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cellFromState" class="def"
+	    >cellFromState</a
+	    > :: <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+	    >BoardCoordinate</a
+	    > -&gt; <a href="Game-Types.html#t:CellStates" title="Game.Types"
+	    >CellStates</a
+	    > -&gt; <a href="Game-Types.html#t:CellState" title="Game.Types"
+	    >CellState</a
+	    > <a href="#v:cellFromState" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >get cell on specific coordinate from <code
+	      >cellStates</code
+	      ></p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:countCells" class="def"
+	    >countCells</a
+	    > :: (<a href="Game-Types.html#t:CellState" title="Game.Types"
+	    >CellState</a
+	    > -&gt; Bool) -&gt; [<a href="Game-Types.html#t:CellState" title="Game.Types"
+	    >CellState</a
+	    >] -&gt; Int <a href="#v:countCells" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >count cells in list matching the <code
+	      >predicate</code
+	      ></p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:countInState" class="def"
+	    >countInState</a
+	    > :: (<a href="Game-Types.html#t:CellState" title="Game.Types"
+	    >CellState</a
+	    > -&gt; Bool) -&gt; <a href="Game-Types.html#t:CellStates" title="Game.Types"
+	    >CellStates</a
+	    > -&gt; Int <a href="#v:countInState" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >count cells in <code
+	      >cellStates</code
+	      > matching the <code
+	      >predicate</code
+	      ></p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.22.0</p
+      ></div
+    ></body
+  ></html
+>

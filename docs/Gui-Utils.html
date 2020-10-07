@@ -1,0 +1,189 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><title
+    >Gui.Utils</title
+    ><link href="ocean.css" rel="stylesheet" type="text/css" title="Ocean"
+     /><link rel="stylesheet" type="text/css" href="quick-jump.css"
+     /><script src="haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><ul class="links" id="page-menu"
+      ><li
+	><a href="index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="doc-index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ><p class="caption empty"
+      >&nbsp;</p
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >None</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Gui.Utils</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:styleSheet"
+	      >styleSheet</a
+	      > :: DomBuilder t m =&gt; Text -&gt; m ()</li
+	    ><li class="src short"
+	    ><a href="#v:linkEl"
+	      >linkEl</a
+	      > :: DomBuilder t m =&gt; Text -&gt; m a -&gt; m a</li
+	    ><li class="src short"
+	    ><a href="#v:formEl-39-"
+	      >formEl'</a
+	      > :: <span class="keyword"
+	      >forall</span
+	      > t m a. DomBuilder t m =&gt; m a -&gt; m (Element EventResult (DomBuilderSpace m) t, a)</li
+	    ><li class="src short"
+	    ><a href="#v:elCell-39-"
+	      >elCell'</a
+	      > :: <span class="keyword"
+	      >forall</span
+	      > t m. (DomBuilder t m, PostBuild t m) =&gt; Dynamic t (Map Text Text) -&gt; m (Element EventResult (DomBuilderSpace m) t, ())</li
+	    ><li class="src short"
+	    ><a href="#v:presetButton"
+	      >presetButton</a
+	      > :: MonadWidget t m =&gt; (Text, <a href="Game-Types.html#t:GameConfig" title="Game.Types"
+	      >GameConfig</a
+	      >) -&gt; m (Event t <a href="Game-Types.html#t:GameConfig" title="Game.Types"
+	      >GameConfig</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:numberInput"
+	      >numberInput</a
+	      > :: MonadWidget t m =&gt; Text -&gt; Int -&gt; m (Dynamic t Int)</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:styleSheet" class="def"
+	    >styleSheet</a
+	    > :: DomBuilder t m =&gt; Text -&gt; m () <a href="#v:styleSheet" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >add a css stylesheet by uri</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:linkEl" class="def"
+	    >linkEl</a
+	    > :: DomBuilder t m =&gt; Text -&gt; m a -&gt; m a <a href="#v:linkEl" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >create a <a href="a"
+	      >a</a
+	      > tag with href</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:formEl-39-" class="def"
+	    >formEl'</a
+	    > :: <span class="keyword"
+	    >forall</span
+	    > t m a. DomBuilder t m =&gt; m a -&gt; m (Element EventResult (DomBuilderSpace m) t, a) <a href="#v:formEl-39-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >create new <a href="form"
+	      >form</a
+	      > tag with <code
+	      >preventDefault</code
+	      > for the submit event</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:elCell-39-" class="def"
+	    >elCell'</a
+	    > :: <span class="keyword"
+	    >forall</span
+	    > t m. (DomBuilder t m, PostBuild t m) =&gt; Dynamic t (Map Text Text) -&gt; m (Element EventResult (DomBuilderSpace m) t, ()) <a href="#v:elCell-39-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >create new cell element with dynamic attributes and <code
+	      >preventDefault</code
+	      > on the Contextmenu event (right click)</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:presetButton" class="def"
+	    >presetButton</a
+	    > :: MonadWidget t m =&gt; (Text, <a href="Game-Types.html#t:GameConfig" title="Game.Types"
+	    >GameConfig</a
+	    >) -&gt; m (Event t <a href="Game-Types.html#t:GameConfig" title="Game.Types"
+	    >GameConfig</a
+	    >) <a href="#v:presetButton" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >create a button with preset <code
+	      ><a href="Game-Types.html#t:GameConfig" title="Game.Types"
+		>GameConfig</a
+		></code
+	      ></p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:numberInput" class="def"
+	    >numberInput</a
+	    > :: MonadWidget t m =&gt; Text -&gt; Int -&gt; m (Dynamic t Int) <a href="#v:numberInput" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >create a <a href="input"
+	      >type=&quot;number&quot;</a
+	      > tag with label returning its value</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.22.0</p
+      ></div
+    ></body
+  ></html
+>

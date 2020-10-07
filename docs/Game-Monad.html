@@ -1,0 +1,599 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><title
+    >Game.Monad</title
+    ><link href="ocean.css" rel="stylesheet" type="text/css" title="Ocean"
+     /><link rel="stylesheet" type="text/css" href="quick-jump.css"
+     /><script src="haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><ul class="links" id="page-menu"
+      ><li
+	><a href="index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="doc-index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ><p class="caption empty"
+      >&nbsp;</p
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Game.Monad</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:GameMonad"
+	      >GameMonad</a
+	      > a = <a href="#v:GameMonad"
+	      >GameMonad</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:runState"
+		  >runState</a
+		  > :: <a href="Game-Types.html#t:GameState" title="Game.Types"
+		  >GameState</a
+		  > -&gt; (a, <a href="Game-Types.html#t:GameState" title="Game.Types"
+		  >GameState</a
+		  >)</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:execState"
+	      >execState</a
+	      > :: <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	      >GameMonad</a
+	      > a -&gt; <a href="Game-Types.html#t:GameState" title="Game.Types"
+	      >GameState</a
+	      > -&gt; <a href="Game-Types.html#t:GameState" title="Game.Types"
+	      >GameState</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:execStateWithUndo"
+	      >execStateWithUndo</a
+	      > :: <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	      >GameMonad</a
+	      > a -&gt; <a href="Game-Types.html#t:GameState" title="Game.Types"
+	      >GameState</a
+	      > -&gt; <a href="Game-Types.html#t:GameState" title="Game.Types"
+	      >GameState</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:get-39-"
+	      >get'</a
+	      > :: <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	      >GameMonad</a
+	      > <a href="Game-Types.html#t:GameState" title="Game.Types"
+	      >GameState</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:getConfig"
+	      >getConfig</a
+	      > :: <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	      >GameMonad</a
+	      > <a href="Game-Types.html#t:GameConfig" title="Game.Types"
+	      >GameConfig</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:getGlobalState"
+	      >getGlobalState</a
+	      > :: <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	      >GameMonad</a
+	      > <a href="Game-Types.html#t:GlobalGameState" title="Game.Types"
+	      >GlobalGameState</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:getCells"
+	      >getCells</a
+	      > :: <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	      >GameMonad</a
+	      > <a href="Game-Types.html#t:CellStates" title="Game.Types"
+	      >CellStates</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:getCell"
+	      >getCell</a
+	      > :: <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+	      >BoardCoordinate</a
+	      > -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	      >GameMonad</a
+	      > <a href="Game-Types.html#t:CellState" title="Game.Types"
+	      >CellState</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:setCell"
+	      >setCell</a
+	      > :: <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+	      >BoardCoordinate</a
+	      > -&gt; <a href="Game-Types.html#t:CellState" title="Game.Types"
+	      >CellState</a
+	      > -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	      >GameMonad</a
+	      > ()</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:GameMonad" class="def"
+	    >GameMonad</a
+	    > a <a href="#t:GameMonad" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Monad to evaluate game a move in</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:GameMonad" class="def"
+		  >GameMonad</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:runState" class="def"
+			  >runState</a
+			  > :: <a href="Game-Types.html#t:GameState" title="Game.Types"
+			  >GameState</a
+			  > -&gt; (a, <a href="Game-Types.html#t:GameState" title="Game.Types"
+			  >GameState</a
+			  >)</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><details id="i:GameMonad" open="open"
+	    ><summary
+	      >Instances</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:GameMonad:Monad:1"
+		      ></span
+		      > Monad <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+		      >GameMonad</a
+		      ></span
+		    > <a href="#t:GameMonad" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:GameMonad:Monad:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Game-Monad.html"
+			>Game.Monad</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-62--62--61-"
+			  >(&gt;&gt;=)</a
+			  > :: <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > a -&gt; (a -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > b) -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > b</p
+			><p class="src"
+			><a href="#v:-62--62-"
+			  >(&gt;&gt;)</a
+			  > :: <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > a -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > b -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > b</p
+			><p class="src"
+			><a href="#v:return"
+			  >return</a
+			  > :: a -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > a</p
+			><p class="src"
+			><a href="#v:fail"
+			  >fail</a
+			  > :: String -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > a</p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:GameMonad:Functor:2"
+		      ></span
+		      > Functor <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+		      >GameMonad</a
+		      ></span
+		    > <a href="#t:GameMonad" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:GameMonad:Functor:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Game-Monad.html"
+			>Game.Monad</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > :: (a -&gt; b) -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > a -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > b</p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > :: a -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > b -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > a</p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:GameMonad:Applicative:3"
+		      ></span
+		      > Applicative <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+		      >GameMonad</a
+		      ></span
+		    > <a href="#t:GameMonad" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:GameMonad:Applicative:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Game-Monad.html"
+			>Game.Monad</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pure"
+			  >pure</a
+			  > :: a -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > a</p
+			><p class="src"
+			><a href="#v:-60--42--62-"
+			  >(&lt;*&gt;)</a
+			  > :: <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > (a -&gt; b) -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > a -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > b</p
+			><p class="src"
+			><a href="#v:liftA2"
+			  >liftA2</a
+			  > :: (a -&gt; b -&gt; c) -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > a -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > b -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > c</p
+			><p class="src"
+			><a href="#v:-42--62-"
+			  >(*&gt;)</a
+			  > :: <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > a -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > b -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > b</p
+			><p class="src"
+			><a href="#v:-60--42-"
+			  >(&lt;*)</a
+			  > :: <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > a -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > b -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+			  >GameMonad</a
+			  > a</p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:execState" class="def"
+	    >execState</a
+	    > <a href="#v:execState" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>:: <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+		  >GameMonad</a
+		  > a</td
+		><td class="doc"
+		><p
+		  >action to be executed</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>-&gt; <a href="Game-Types.html#t:GameState" title="Game.Types"
+		  >GameState</a
+		  ></td
+		><td class="doc"
+		><p
+		  >current state of the game</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>-&gt; <a href="Game-Types.html#t:GameState" title="Game.Types"
+		  >GameState</a
+		  ></td
+		><td class="doc"
+		><p
+		  >game state after the action</p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >evaluate an action on a GameState and return new state</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:execStateWithUndo" class="def"
+	    >execStateWithUndo</a
+	    > :: <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	    >GameMonad</a
+	    > a -&gt; <a href="Game-Types.html#t:GameState" title="Game.Types"
+	    >GameState</a
+	    > -&gt; <a href="Game-Types.html#t:GameState" title="Game.Types"
+	    >GameState</a
+	    > <a href="#v:execStateWithUndo" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >same as <code
+	      ><a href="Game-Monad.html#v:execState" title="Game.Monad"
+		>execState</a
+		></code
+	      > but save previous state for undo operations</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:get-39-" class="def"
+	    >get'</a
+	    > :: <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	    >GameMonad</a
+	    > <a href="Game-Types.html#t:GameState" title="Game.Types"
+	    >GameState</a
+	    > <a href="#v:get-39-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >get current <code
+	      ><a href="Game-Types.html#t:GameState" title="Game.Types"
+		>GameState</a
+		></code
+	      ></p
+	    ><p
+	    ><em
+	      >for internal use only</em
+	      ></p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getConfig" class="def"
+	    >getConfig</a
+	    > :: <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	    >GameMonad</a
+	    > <a href="Game-Types.html#t:GameConfig" title="Game.Types"
+	    >GameConfig</a
+	    > <a href="#v:getConfig" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >get the <code
+	      ><a href="Game-Types.html#t:GameConfig" title="Game.Types"
+		>GameConfig</a
+		></code
+	      > of the current state</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getGlobalState" class="def"
+	    >getGlobalState</a
+	    > :: <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	    >GameMonad</a
+	    > <a href="Game-Types.html#t:GlobalGameState" title="Game.Types"
+	    >GlobalGameState</a
+	    > <a href="#v:getGlobalState" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >get the <code
+	      ><a href="Game-Types.html#t:GlobalGameState" title="Game.Types"
+		>GlobalGameState</a
+		></code
+	      > of the current state</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getCells" class="def"
+	    >getCells</a
+	    > :: <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	    >GameMonad</a
+	    > <a href="Game-Types.html#t:CellStates" title="Game.Types"
+	    >CellStates</a
+	    > <a href="#v:getCells" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >get the <code
+	      ><a href="Game-Types.html#t:CellStates" title="Game.Types"
+		>CellStates</a
+		></code
+	      > of the current state</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getCell" class="def"
+	    >getCell</a
+	    > :: <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+	    >BoardCoordinate</a
+	    > -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	    >GameMonad</a
+	    > <a href="Game-Types.html#t:CellState" title="Game.Types"
+	    >CellState</a
+	    > <a href="#v:getCell" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >get the <code
+	      ><a href="Game-Types.html#t:CellState" title="Game.Types"
+		>CellState</a
+		></code
+	      > of the cell at given coordinate</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:setCell" class="def"
+	    >setCell</a
+	    > :: <a href="Game-Types.html#t:BoardCoordinate" title="Game.Types"
+	    >BoardCoordinate</a
+	    > -&gt; <a href="Game-Types.html#t:CellState" title="Game.Types"
+	    >CellState</a
+	    > -&gt; <a href="Game-Monad.html#t:GameMonad" title="Game.Monad"
+	    >GameMonad</a
+	    > () <a href="#v:setCell" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >update the <code
+	      ><a href="Game-Types.html#t:CellState" title="Game.Types"
+		>CellState</a
+		></code
+	      > at the given coordinate</p
+	    ><p
+	    >this will also automatically update the <code
+	      ><a href="Game-Types.html#t:GlobalGameState" title="Game.Types"
+		>GlobalGameState</a
+		></code
+	      ></p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.22.0</p
+      ></div
+    ></body
+  ></html
+>
