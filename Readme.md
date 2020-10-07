@@ -17,7 +17,28 @@ transpiled to JavaScript and be deployed as a static web app.
 It can also be built with `GHC` producting a native executable using `WebkitGtk`
 as a _browser_.
 
+You can play a live demo of this project [here](https://acran.github.io/haboom/).
+
+# Context
+
+This project was made for a univerity course on
+[advanced functional programming](https://www.tcs.ifi.lmu.de/lehre/ss-2020/fun).
+
+It was inspired by and heavily based on
+
+* [Kaboom](https://github.com/pwmarcz/kaboom) - a **cruel, but fair** Minesweeper
+  game by Paweł Marczewski ([pwmarcz.pl](https://pwmarcz.pl))
+
+The files in the [`css/`](css/) directory are copied directly from `Kaboom`.
+
 # How to install and build
+
+## Cloning from GitHub
+
+Download the code with `git clone` from GitHub:
+~~~sh
+git clone --recurse-submodules https://github.com/acran/haboom.git
+~~~
 
 ## Using `nix`
 
@@ -76,11 +97,17 @@ docker cp haboom:/haboom/docs/ docs
 # open docs/index.html with a browser
 ~~~
 
-# See also
+You can find an online version of the documentation
+[here](https://acran.github.io/haboom/docs/).
 
-This project was inspired by and heavily based on
+# Known issues
 
-[Kaboom](https://github.com/pwmarcz/kaboom) - a **cruel, but fair** Minesweeper
-game by Paweł Marczewski (pwmarcz.pl)
-
-The files in the `css/` directory are copied directly from `Kaboom`.
+* The game is not guaranteed to be solvable without guessing, and if the player
+  is forced to guess it is not guaranteed to be safe - unlike with `Kaboom`!
+* The [placement algorithm](https://github.com/acran/haboom/blob/master/Game/Logic.hs#L40-L46)
+  is actually _really_ crude. It was first implemented as a placeholder but
+  incidentally worked out quite good for small field sizes with few mines. For
+  bigger field sizes and many mines unfortunately the mines end up in one big
+  cluster most of the times.
+* The performance is not very optimized and results in noticable delays with
+  bigger field sizes.
