@@ -58,6 +58,10 @@ bodyElement config dynGameState = divClass "container" $ do
     el "li" $ text "Only when revealing a cell the state for it and the surrounding cells is fixed."
     el "li" $ text "If you open a cell which state is not fixed yet it will be safe..."
     el "li" $ text "...unless there are no other un-fixed cells left to place the remaining floating mines"
+  el "p" $ do
+    text "You can find the source code for this project "
+    linkEl "https://github.com/acran/haboom" $ text "on GitHub"
+    text "."
 
   el "h2" $ text "See also"
   el "p" $ do
